@@ -1,0 +1,96 @@
+{
+  "login_attempts": [],
+  "otp_attempts": [],
+  "observations": [
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "success",
+      {
+        "message": "Enter OTP",
+        "next": "otp_required",
+        "status": "ok"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "failed",
+      {
+        "error": "invalid_credentials"
+      }
+    ],
+    [
+      "login",
+      "success",
+      {
+        "message": "Enter OTP",
+        "next": "otp_required",
+        "status": "ok"
+      }
+    ],
+    [
+      "login",
+      "rate_limited",
+      {
+        "detail": "Too many requests",
+        "error": "rate_limited"
+      }
+    ],
+    [
+      "otp",
+      "rate_limited",
+      {
+        "detail": "Too many requests",
+        "error": "rate_limited"
+      }
+    ]
+  ]
+}

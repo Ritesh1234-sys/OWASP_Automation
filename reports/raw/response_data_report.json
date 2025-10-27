@@ -1,0 +1,21 @@
+{
+  "url": "http://127.0.0.1:5002/set_cookies_demo",
+  "status": 200,
+  "content_length": 40,
+  "findings": [
+    {
+      "pattern": "email",
+      "count": 1,
+      "examples": [
+        "alice@example.com"
+      ]
+    },
+    {
+      "pattern": "jwt",
+      "count": 1,
+      "examples": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bad_payload.signature"
+      ]
+    }
+  ]
+}

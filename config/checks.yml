@@ -1,0 +1,47 @@
+# ===========================================
+# OWASP Automation Framework Configuration
+# ===========================================
+# Each entry defines one security check.
+
+- name: cookie_scanner
+  module: src/cookie_scanner.py
+  output: reports/raw/cookie_scan_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5002/set_cookies_demo
+
+- name: response_data_scanner
+  module: src/response_data_scanner.py
+  output: reports/raw/response_data_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5002/set_cookies_demo
+
+- name: verify_jwt
+  module: src/verify_jwt_full.py
+  output: reports/raw/jwt_verify_report.json
+  args:
+    - --token-file
+    - data/token.txt
+
+- name: login_bruteforce
+  module: src/bruteforce_test.py
+  output: reports/raw/bruteforce_report.json
+  args:
+    - --password-file
+    - data/pwlist.txt
+    - --otp-file
+    - data/otplist.txt
+    - --username
+    - alice
+    - --delay
+    - "0.2"
+    - --target
+    - http://127.0.0.1:5001
+
+- name: password_validation_check
+  module: src/password_validation_check.py
+  output: reports/raw/password_validation_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5002/password_form

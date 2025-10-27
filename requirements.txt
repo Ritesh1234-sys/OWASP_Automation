@@ -1,0 +1,13 @@
+Flask
+requests
+pyjwt
+jinja2
+pandas
+matplotlib
+PyYAML
+requests
+playwright
+beautifulsoup4
+lxml
+pandas
+yq

@@ -1,0 +1,109 @@
+{
+  "url": "http://127.0.0.1:5002/set_cookies_demo",
+  "status_code": 200,
+  "cookies_found": [
+    {
+      "name": "secure_session",
+      "value": "sess_abc123",
+      "attrs": {
+        "expires": "Mon, 27 Oct 2025 16:58:36 GMT",
+        "max-age": "3600",
+        "secure": true,
+        "httponly": true,
+        "path": "/",
+        "samesite": "Lax"
+      },
+      "raw": "secure_session=sess_abc123; Expires=Mon, 27 Oct 2025 16:58:36 GMT; Max-Age=3600; Secure; HttpOnly; Path=/; SameSite=Lax"
+    },
+    {
+      "name": "auth_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bad_payload.signature",
+      "attrs": {
+        "expires": "Mon, 27 Oct 2025 16:58:36 GMT",
+        "max-age": "3600",
+        "path": "/"
+      },
+      "raw": "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bad_payload.signature; Expires=Mon, 27 Oct 2025 16:58:36 GMT; Max-Age=3600; Path=/"
+    },
+    {
+      "name": "user_email",
+      "value": "alice@example.com",
+      "attrs": {
+        "path": "/"
+      },
+      "raw": "user_email=alice@example.com; Path=/"
+    },
+    {
+      "name": "long_lived",
+      "value": "persistent_value",
+      "attrs": {
+        "expires": "Sat, 26 Oct 2030 15:58:36 GMT",
+        "max-age": "157680000",
+        "httponly": true,
+        "path": "/",
+        "samesite": "Lax"
+      },
+      "raw": "long_lived=persistent_value; Expires=Sat, 26 Oct 2030 15:58:36 GMT; Max-Age=157680000; HttpOnly; Path=/; SameSite=Lax"
+    }
+  ],
+  "findings": [
+    {
+      "cookie": "auth_token",
+      "issue": "value_looks_like_jwt",
+      "type": "sensitive_value"
+    },
+    {
+      "cookie": "auth_token",
+      "issue": "missing_httponly",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "auth_token",
+      "issue": "missing_secure",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "auth_token",
+      "issue": "missing_samesite",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "user_email",
+      "issue": "value_contains_email",
+      "type": "sensitive_value"
+    },
+    {
+      "cookie": "user_email",
+      "issue": "missing_httponly",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "user_email",
+      "issue": "missing_secure",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "user_email",
+      "issue": "missing_samesite",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "long_lived",
+      "issue": "missing_secure",
+      "type": "cookie_attr",
+      "level": "issue"
+    },
+    {
+      "cookie": "long_lived",
+      "issue": "excessive_max_age",
+      "type": "cookie_attr",
+      "level": "issue"
+    }
+  ]
+}

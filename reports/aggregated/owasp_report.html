@@ -1,0 +1,94 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>OWASP Automation Report</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 30px; background:#f7f9fb; color:#222; }
+    header { margin-bottom: 20px; }
+    table { border-collapse: collapse; width:100%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+    th, td { padding: 12px 10px; border-bottom:1px solid #eee; text-align:left; }
+    th { background:#2f3e46; color:#fff; font-weight:600; }
+    tr:nth-child(even) td { background:#fbfdff; }
+    .PASS { color:#1b8a1b; font-weight:700; }
+    .WARN { color:#b06a00; font-weight:700; }
+    .FAIL { color:#c23131; font-weight:700; }
+    .ERROR { color:#8e44ad; font-weight:700; }
+    .UNKNOWN { color:#777; font-weight:700; }
+    .container { max-width:1200px; margin:auto; }
+    .left { float:left; width:60%; }
+    .right { float:right; width:36%; }
+    .clearfix::after { content:''; display:table; clear:both; }
+    footer { margin-top: 30px; color:#666; font-size:13px; text-align:center;}
+    a.raw-link { color:#2a6fdb; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>OWASP Security Automation Report</h1>
+      <p>Generated: 2025-10-27 15:59:31Z</p>
+    </header>
+
+    <div class="clearfix">
+      <div class="left">
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Status</th><th>Findings</th><th>Raw JSON</th></tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <td>bruteforce</td>
+              <td class="UNKNOWN">UNKNOWN</td>
+              <td>0</td>
+              <td><a class="raw-link" href="../raw/bruteforce_report.json" target="_blank">Open</a></td>
+            </tr>
+            
+            <tr>
+              <td>cookie_scan</td>
+              <td class="UNKNOWN">UNKNOWN</td>
+              <td>10</td>
+              <td><a class="raw-link" href="../raw/cookie_scan_report.json" target="_blank">Open</a></td>
+            </tr>
+            
+            <tr>
+              <td>jwt_verify</td>
+              <td class="UNKNOWN">UNKNOWN</td>
+              <td>0</td>
+              <td><a class="raw-link" href="../raw/jwt_verify_report.json" target="_blank">Open</a></td>
+            </tr>
+            
+            <tr>
+              <td>password_validation</td>
+              <td class="FAIL">FAIL</td>
+              <td>1</td>
+              <td><a class="raw-link" href="../raw/password_validation_report.json" target="_blank">Open</a></td>
+            </tr>
+            
+            <tr>
+              <td>response_data</td>
+              <td class="PASS">PASS</td>
+              <td>2</td>
+              <td><a class="raw-link" href="../raw/response_data_report.json" target="_blank">Open</a></td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+
+      <div class="right">
+        <h3>Overall Status</h3>
+        <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.1.min.js" integrity="sha256-HUEFyfiTnZJxCxur99FjbKYTvKSzwDaD3/x5TqHpFu4=" crossorigin="anonymous"></script>                <div id="8a18c714-77ec-4796-b507-954203b3e4f6" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("8a18c714-77ec-4796-b507-954203b3e4f6")) {                    Plotly.newPlot(                        "8a18c714-77ec-4796-b507-954203b3e4f6",                        [{"customdata":[["PASS"],["WARN"],["FAIL"],["ERROR"],["UNKNOWN"]],"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"hole":0.5,"hovertemplate":"status=%{customdata[0]}\u003cbr\u003ecount=%{value}\u003cextra\u003e\u003c\u002fextra\u003e","labels":["PASS","WARN","FAIL","ERROR","UNKNOWN"],"legendgroup":"","marker":{"colors":["#4CAF50","#FFB74D","#F44336","#9C27B0","#9E9E9E"]},"name":"","showlegend":true,"values":{"dtype":"i1","bdata":"AQABAAM="},"type":"pie"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"legend":{"tracegroupgap":0},"title":{"text":"OWASP Check Status Distribution"},"margin":{"l":0,"r":0,"t":30,"b":0},"showlegend":true},                        {"responsive": true}                    )                };            </script>        </div>
+        <p style="margin-top:10px">Pass: 1 &nbsp; | &nbsp; Warn: 0 &nbsp; | &nbsp; Fail: 1</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>OWASP_Automation Framework • 2025-10-27 15:59:31Z</p>
+    </footer>
+  </div>
+</body>
+</html>
