@@ -1,0 +1,26 @@
+{
+  "users": {
+    "alice": {
+      "base_url": "http://127.0.0.1:5002",
+      "token": "TOKEN_FOR_ALICE"
+    },
+    "bob": {
+      "base_url": "http://127.0.0.1:5002",
+      "token": "TOKEN_FOR_BOB"
+    }
+  },
+  "actions": [
+    {
+      "url": "http://127.0.0.1:5002/api/user/{username}/update-profile",
+      "method": "POST",
+      "json": { "name": "Updated User" },
+      "keyword": "update-profile"
+    },
+    {
+      "url": "http://127.0.0.1:5002/api/user/{username}/logout",
+      "method": "POST",
+      "keyword": "logout"
+    }
+  ],
+  "activity_log_endpoint": "http://127.0.0.1:5002/api/logs/{username}"
+}

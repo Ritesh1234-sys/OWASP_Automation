@@ -1,0 +1,129 @@
+{
+  "check_name": "role_authorization_check",
+  "status": "SECURE",
+  "summary": "No unauthorized access detected.",
+  "findings": [],
+  "attempts": [
+    {
+      "role": "admin",
+      "endpoint": "/admin/dashboard",
+      "full_url": "http://127.0.0.1:5002/admin/dashboard",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/dashboard (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1074042f0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "user",
+      "endpoint": "/admin/dashboard",
+      "full_url": "http://127.0.0.1:5002/admin/dashboard",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/dashboard (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x107323750>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "guest",
+      "endpoint": "/admin/dashboard",
+      "full_url": "http://127.0.0.1:5002/admin/dashboard",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/dashboard (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x107323390>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "admin",
+      "endpoint": "/admin/config",
+      "full_url": "http://127.0.0.1:5002/admin/config",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/config (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10739bbb0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "user",
+      "endpoint": "/admin/config",
+      "full_url": "http://127.0.0.1:5002/admin/config",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/config (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x107414510>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "guest",
+      "endpoint": "/admin/config",
+      "full_url": "http://127.0.0.1:5002/admin/config",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/config (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1073c1d90>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "admin",
+      "endpoint": "/user/settings",
+      "full_url": "http://127.0.0.1:5002/user/settings",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /user/settings (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1073cb790>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "user",
+      "endpoint": "/user/settings",
+      "full_url": "http://127.0.0.1:5002/user/settings",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /user/settings (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x107430160>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "guest",
+      "endpoint": "/user/settings",
+      "full_url": "http://127.0.0.1:5002/user/settings",
+      "method": "GET",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /user/settings (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1074305a0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "admin",
+      "endpoint": "/admin/update-config",
+      "full_url": "http://127.0.0.1:5002/admin/update-config",
+      "method": "POST",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/update-config (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1074309e0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "user",
+      "endpoint": "/admin/update-config",
+      "full_url": "http://127.0.0.1:5002/admin/update-config",
+      "method": "POST",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/update-config (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x107430e20>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    },
+    {
+      "role": "guest",
+      "endpoint": "/admin/update-config",
+      "full_url": "http://127.0.0.1:5002/admin/update-config",
+      "method": "POST",
+      "status_code": null,
+      "accessible": false,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/update-config (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x107431260>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "elapsed": null
+    }
+  ],
+  "timestamp": "2025-10-28T14:07:34.097253+00:00"
+}

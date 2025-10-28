@@ -1,0 +1,20 @@
+{
+  "check_name": "api_concurrency_check",
+  "target": "https://example.com/api/public-data",
+  "status": "FAIL",
+  "summary": "30/30 requests failed under concurrency load.",
+  "findings": [
+    {
+      "test": "Concurrent Request Load",
+      "concurrency": 10,
+      "total_requests": 30,
+      "avg_latency": 1.372,
+      "max_latency": 5.77,
+      "failures": 30,
+      "status": "FAIL",
+      "severity": "HIGH",
+      "recommendation": "Investigate performance degradation under concurrent requests."
+    }
+  ],
+  "timestamp": "2025-10-28T14:08:40.326331Z"
+}

@@ -1,0 +1,43 @@
+{
+  "check_name": "request_timeout_check",
+  "target": "http://127.0.0.1:5001/login",
+  "status": "FAIL",
+  "summary": "One or more sub-tests failed.",
+  "details": {
+    "expected_timeout_seconds": 30,
+    "slow_bytes": 10240,
+    "slow_interval": 2.0,
+    "chunk_size": 1024,
+    "concurrency": 3,
+    "simple_endpoint": "/"
+  },
+  "findings": [
+    {
+      "test": "slow_post",
+      "result": "ERROR",
+      "severity": "High",
+      "details": "Failed to connect: [Errno 61] Connection refused",
+      "timings": {},
+      "raw_response_start": null
+    },
+    {
+      "test": "idle_connection",
+      "result": "ERROR",
+      "severity": "High",
+      "details": "Connect failed: [Errno 61] Connection refused",
+      "timings": {}
+    },
+    {
+      "test": "concurrency_light",
+      "result": "FAIL",
+      "severity": "High",
+      "details": "All concurrent requests failed.",
+      "metrics": {
+        "requests": 3,
+        "failures": 3,
+        "avg_latency": null
+      }
+    }
+  ],
+  "timestamp": "2025-10-28T14:08:34.331757+00:00"
+}

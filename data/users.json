@@ -1,0 +1,20 @@
+{
+  "alice": {
+    "user_id": "alice123",
+    "base_url": "http://127.0.0.1:5002",
+    "token": "TOKEN_FOR_ALICE",
+    "cookies": {}
+  },
+  "bob": {
+    "user_id": "bob456",
+    "base_url": "http://127.0.0.1:5002",
+    "token": "TOKEN_FOR_BOB",
+    "cookies": {}
+  },
+  "charlie": {
+    "user_id": "charlie789",
+    "base_url": "http://127.0.0.1:5002",
+    "token": "TOKEN_FOR_CHARLIE",
+    "cookies": {}
+  }
+}

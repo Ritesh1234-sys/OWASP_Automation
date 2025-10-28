@@ -1,0 +1,80 @@
+{
+  "check_name": "login_throttling_check",
+  "target": "https://example.com/api/login",
+  "username_tested": "admin",
+  "status": "FAIL",
+  "summary": "No throttling observed \u2014 multiple login attempts allowed rapidly.",
+  "findings": [
+    {
+      "attempt": 1,
+      "status_code": 403,
+      "latency": 1.173,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 2,
+      "status_code": 403,
+      "latency": 0.913,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 3,
+      "status_code": 403,
+      "latency": 0.926,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 4,
+      "status_code": 403,
+      "latency": 0.892,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 5,
+      "status_code": 403,
+      "latency": 1.159,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 6,
+      "status_code": 403,
+      "latency": 1.029,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 7,
+      "status_code": 403,
+      "latency": 1.019,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 8,
+      "status_code": 403,
+      "latency": 0.921,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 9,
+      "status_code": 403,
+      "latency": 0.879,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    },
+    {
+      "attempt": 10,
+      "status_code": 403,
+      "latency": 0.857,
+      "detail": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api&#47;login\" on this server.<P>\nReference",
+      "severity": "HIGH"
+    }
+  ],
+  "timestamp": "2025-10-28T14:08:53.440728Z"
+}

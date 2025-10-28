@@ -1,0 +1,25 @@
+{
+  "check_name": "subdomain_enumeration_check",
+  "target_domain": "example.com",
+  "status": "WARN",
+  "summary": "2 medium-risk subdomains detected.",
+  "findings": [
+    {
+      "subdomain": "www.example.com",
+      "ip": "23.64.59.161",
+      "protocol": "https",
+      "status_code": 200,
+      "severity": "MEDIUM",
+      "detail": "Subdomain reachable (HTTPS 200)"
+    },
+    {
+      "subdomain": "www.example.com",
+      "ip": "23.64.59.161",
+      "protocol": "http",
+      "status_code": 200,
+      "severity": "MEDIUM",
+      "detail": "Subdomain reachable (HTTP 200)"
+    }
+  ],
+  "timestamp": "2025-10-28T14:08:19.952374Z"
+}

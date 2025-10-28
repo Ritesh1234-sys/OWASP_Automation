@@ -1,0 +1,64 @@
+{
+  "check_name": "email_spoof_check",
+  "domain": "example.com",
+  "timestamp": "2025-10-28T14:08:20.202463Z",
+  "mx": [
+    ""
+  ],
+  "spf": {
+    "found": true,
+    "spf_text": "v=spf1 -all",
+    "mechanisms": [
+      "v=spf1",
+      "-all"
+    ],
+    "all_qualifier": "-all"
+  },
+  "dmarc": {
+    "found": true,
+    "dmarc_text": "v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s",
+    "policy": "reject",
+    "reporting": false
+  },
+  "dkim": {
+    "keys": {
+      "default": {
+        "found": true,
+        "txt": "v=DKIM1; p="
+      },
+      "selector1": {
+        "found": true,
+        "txt": "v=DKIM1; p="
+      },
+      "google": {
+        "found": true,
+        "txt": "v=DKIM1; p="
+      }
+    },
+    "any_present": true
+  },
+  "findings": [
+    {
+      "title": "MX records present",
+      "detail": "MX records: ",
+      "severity": "Info"
+    },
+    {
+      "title": "SPF record found (strict)",
+      "detail": "SPF `all` qualifier: -all. This is good (strict deny).",
+      "severity": "Info"
+    },
+    {
+      "title": "DMARC policy present",
+      "detail": "DMARC policy is reject. This helps prevent spoofing.",
+      "severity": "Info"
+    },
+    {
+      "title": "DKIM key(s) present",
+      "detail": "Found DKIM public key(s) for selectors: default, selector1, google",
+      "severity": "Info"
+    }
+  ],
+  "status": "PASS",
+  "summary": "Domain has strong anti-spoofing controls (DMARC enforce + SPF/DKIM)."
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "endpoint": "/user/{user_id}/profile",
+    "method": "GET"
+  },
+  {
+    "endpoint": "/api/users/{user_id}/private-data",
+    "method": "GET"
+  },
+  {
+    "endpoint": "/api/users/{user_id}/messages",
+    "method": "GET"
+  },
+  {
+    "endpoint": "/api/users/{user_id}/notes",
+    "method": "POST",
+    "json": {
+      "note": "testing-idor-check"
+    }
+  }
+]

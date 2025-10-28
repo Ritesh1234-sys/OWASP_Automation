@@ -1,0 +1,6 @@
+admin@example.com
+test@ebpearls.com
+tempadmin@mailinator.com
+fakeadmin@tempmail.com
+admin@guerrillamail.com
+goodadmin@company.org

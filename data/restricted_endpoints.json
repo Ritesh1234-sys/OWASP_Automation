@@ -1,0 +1,23 @@
+[
+  {
+    "endpoint": "/admin/dashboard",
+    "allowed_roles": ["admin"],
+    "method": "GET"
+  },
+  {
+    "endpoint": "/admin/config",
+    "allowed_roles": ["admin"],
+    "method": "GET"
+  },
+  {
+    "endpoint": "/user/settings",
+    "allowed_roles": ["admin", "user"],
+    "method": "GET"
+  },
+  {
+    "endpoint": "/admin/update-config",
+    "allowed_roles": ["admin"],
+    "method": "POST",
+    "json": {"dummy": "value"}
+  }
+]

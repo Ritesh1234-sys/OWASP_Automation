@@ -1,0 +1,8 @@
+{
+  "check_name": "url_data_leak_check",
+  "target": "https://example.com",
+  "status": "PASS",
+  "summary": "No sensitive data found in URLs.",
+  "findings": [],
+  "timestamp": "2025-10-28T14:08:34.072558Z"
+}

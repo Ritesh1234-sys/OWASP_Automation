@@ -1,0 +1,33 @@
+{
+  "check_name": "no_unwanted_keys_exposure_check",
+  "target": "https://example.com",
+  "status": "PASS",
+  "summary": "No unwanted keys or secrets exposed.",
+  "findings": [
+    {
+      "endpoint": "/",
+      "status_code": 200,
+      "num_findings": 0,
+      "findings": []
+    },
+    {
+      "endpoint": "/api/config",
+      "status_code": 404,
+      "num_findings": 0,
+      "findings": []
+    },
+    {
+      "endpoint": "/static/js/app.js",
+      "status_code": 404,
+      "num_findings": 0,
+      "findings": []
+    },
+    {
+      "endpoint": "/manifest.json",
+      "status_code": 404,
+      "num_findings": 0,
+      "findings": []
+    }
+  ],
+  "timestamp": "2025-10-28T14:08:56.397062Z"
+}

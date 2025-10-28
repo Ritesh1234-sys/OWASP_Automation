@@ -1,0 +1,10 @@
+{
+  "base_url": "https://example.com",
+  "repeat": 3,
+  "think_time_ms": 100,
+  "endpoints": [
+    { "path": "/api/profile", "method": "GET" },
+    { "path": "/api/notifications", "method": "GET" },
+    { "path": "/api/cart", "method": "GET" }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "check_name": "cors_policy_check",
+  "target": "https://example.com",
+  "status": "PASS",
+  "summary": "CORS configuration looks safe for tested scenarios.",
+  "findings": [
+    {
+      "issue": "no_cors_headers",
+      "severity": "INFO",
+      "origin": "https://example.com",
+      "method": "GET",
+      "detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.",
+      "evidence": {
+        "preflight_status": 501,
+        "actual_status": 200,
+        "acao": "",
+        "acac": "",
+        "acah": "",
+        "acam": "",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "issue": "no_cors_headers",
+      "severity": "INFO",
+      "origin": "https://example.com",
+      "method": "POST",
+      "detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.",
+      "evidence": {
+        "preflight_status": 501,
+        "actual_status": 403,
+        "acao": "",
+        "acac": "",
+        "acah": "",
+        "acam": "",
+        "vary": ""
+      }
+    },
+    {
+      "issue": "no_cors_headers",
+      "severity": "INFO",
+      "origin": "https://evil.example",
+      "method": "GET",
+      "detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.",
+      "evidence": {
+        "preflight_status": 501,
+        "actual_status": 200,
+        "acao": "",
+        "acac": "",
+        "acah": "",
+        "acam": "",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "issue": "no_cors_headers",
+      "severity": "INFO",
+      "origin": "https://evil.example",
+      "method": "POST",
+      "detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.",
+      "evidence": {
+        "preflight_status": 501,
+        "actual_status": 403,
+        "acao": "",
+        "acac": "",
+        "acah": "",
+        "acam": "",
+        "vary": ""
+      }
+    },
+    {
+      "issue": "no_cors_headers",
+      "severity": "INFO",
+      "origin": "null",
+      "method": "GET",
+      "detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.",
+      "evidence": {
+        "preflight_status": 501,
+        "actual_status": 200,
+        "acao": "",
+        "acac": "",
+        "acah": "",
+        "acam": "",
+        "vary": "Accept-Encoding"
+      }
+    },
+    {
+      "issue": "no_cors_headers",
+      "severity": "INFO",
+      "origin": "null",
+      "method": "POST",
+      "detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.",
+      "evidence": {
+        "preflight_status": 501,
+        "actual_status": 403,
+        "acao": "",
+        "acac": "",
+        "acah": "",
+        "acam": "",
+        "vary": ""
+      }
+    }
+  ],
+  "timestamp": "2025-10-28T14:07:54.190233Z"
+}

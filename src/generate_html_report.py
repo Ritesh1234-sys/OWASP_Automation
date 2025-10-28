@@ -1,58 +1,53 @@
 #!/usr/bin/env python3
 """
 generate_html_report.py
+-------------------------------------------------
+Simple, responsive, client-ready OWASP report dashboard.
 
-Robust HTML aggregator for OWASP_Automation.
+Key goals:
+- Minimal dependencies (only jinja2; Plotly via CDN)
+- Robust status normalization (string/number/None)
+- Robust findings parsing (list/dict/missing)
+- Clear, readable layout with mobile support
+- Export buttons for CSV/JSON of the visible data
+- Backward-compatible with your existing *_report.json files
 
-Features:
-- Loads all JSON files from reports/raw/
-- Normalizes `status` across reports (handles strings, numbers, missing)
-- Maps numeric HTTP-like codes to PASS/WARN/FAIL/ERROR
-- Produces a clean HTML dashboard with a donut chart and table
-- Tolerant to malformed or partial report files
+Input directory : reports/raw/
+Output file     : reports/aggregated/owasp_report.html
 """
 
 import os
 import json
 import datetime
-import pandas as pd
-import plotly.express as px
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from typing import Any, Dict, List, Tuple
+from jinja2 import Environment, BaseLoader, select_autoescape
 
 RAW_DIR = "reports/raw"
 AGG_DIR = "reports/aggregated"
-OUTPUT_FILE = os.path.join(AGG_DIR, "owasp_report.html")
+OUT_FILE = os.path.join(AGG_DIR, "owasp_report.html")
 
 
-def load_json_file(path):
-    """Safely load a JSON file, returning a dict even on error."""
-    try:
-        with open(path, "r", encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception as e:
-        return {"_parse_error": str(e)}
-
-
-def normalize_status(raw_status):
+# -------------------------------
+# Helpers: status & severity
+# -------------------------------
+def normalize_status(raw_status: Any) -> str:
     """
-    Normalize a raw `status` value into one of:
-      PASS, WARN, FAIL, ERROR, UNKNOWN
+    Map arbitrary status to PASS/WARN/FAIL/ERROR/UNKNOWN.
 
-    Acceptable inputs:
-      - strings like "pass", "Warn", "FAIL" -> normalized to uppercase
-      - numeric codes (e.g., 200, 404) -> mapped to categories
-      - missing/None/empty -> UNKNOWN
+    Handles:
+    - ints (HTTP-like): 2xx=PASS, 3xx=WARN, 4xx=FAIL, 5xx=ERROR
+    - strings (case-insensitive)
+    - None/missing
     """
     if raw_status is None:
         return "UNKNOWN"
 
-    # If it's a dict with status field, unwrap (defensive)
+    # unwrap nested {"status": "..."} if present
     if isinstance(raw_status, dict) and "status" in raw_status:
         raw_status = raw_status["status"]
 
-    # If it's numeric (int/float) or numeric string, classify by ranges
+    # numeric (or numeric string)
     try:
-        # allow numeric strings like "200"
         num = int(raw_status)
         if 100 <= num < 300:
             return "PASS"
@@ -65,215 +60,458 @@ def normalize_status(raw_status):
     except Exception:
         pass
 
-    # If it's a string, trim and uppercase it
+    # strings
     if isinstance(raw_status, str):
         s = raw_status.strip().upper()
-        if s == "":
-            return "UNKNOWN"
-        # common synonyms mapping (helpful if scripts use varied words)
-        if s in ("OK", "200", "SUCCESS", "PASSED"):
-            return "PASS"
-        if s in ("WARN", "WARNING", "CAUTION"):
-            return "WARN"
-        if s in ("FAIL", "FAILED", "VULNERABLE", "ERROR"):
-            return "FAIL" if "FAIL" in s else ("ERROR" if "ERROR" in s else s)
-        # If it's already PASS/WARN/FAIL/ERROR, return directly
         if s in ("PASS", "WARN", "FAIL", "ERROR", "UNKNOWN"):
             return s
-        # For other words (e.g., "rate_limited"), classify as WARN
-        if any(k in s for k in ("RATE", "LIMIT", "THROTTLE", "LIMITED")):
+        if s in ("OK", "SUCCESS", "PASSED"):
+            return "PASS"
+        if s in ("WARNING", "CAUTION"):
             return "WARN"
-        # default to WARN for anything unclear but present
-        return "WARN"
+        if "RATE_LIMIT" in s or "RATE" in s:
+            return "WARN"
+        if "ERROR" in s:
+            return "ERROR"
+        if "FAIL" in s or "VULNERABLE" in s:
+            return "FAIL"
+        if s.isdigit():
+            # If string digit slipped through
+            return normalize_status(int(s))
+        return "WARN"  # conservative default for non-empty strings
 
-    # For unknown types fallback
     return "UNKNOWN"
 
 
-def load_reports():
-    """Read raw JSON reports and create a normalized list of report dicts."""
-    reports = []
+def normalize_severity(raw: Any) -> str:
+    """
+    Map arbitrary severity strings to HIGH/MEDIUM/LOW/INFO.
+    Default to INFO if missing/unknown.
+    """
+    if not isinstance(raw, str):
+        return "INFO"
+    s = raw.strip().upper()
+    if s in ("HIGH", "MEDIUM", "LOW", "INFO"):
+        return s
+    if s in ("CRITICAL", "SEVERE"):
+        return "HIGH"
+    if s in ("MODERATE"):
+        return "MEDIUM"
+    if s in ("MINOR",):
+        return "LOW"
+    return "INFO"
+
+
+def display_name_from_file(filename: str) -> str:
+    """
+    Convert 'cookie_scan_report.json' -> 'Cookie Scan'
+    """
+    base = filename.replace("_report.json", "")
+    parts = base.split("_")
+    return " ".join(p.capitalize() for p in parts)
+
+
+# -------------------------------
+# Load & shape data
+# -------------------------------
+def safe_load_json(path: str) -> Dict[str, Any]:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        return {"_parse_error": str(e), "path": path}
+
+
+def coerce_findings(raw_findings: Any) -> List[Dict[str, Any]]:
+    """
+    Ensure findings is a list of dicts.
+    - If dict, wrap in list.
+    - If None/missing, return []
+    - If list of non-dicts, coerce to dict with 'detail'
+    """
+    if raw_findings is None:
+        return []
+    if isinstance(raw_findings, dict):
+        return [raw_findings]
+    if isinstance(raw_findings, list):
+        out = []
+        for item in raw_findings:
+            if isinstance(item, dict):
+                out.append(item)
+            else:
+                out.append({"detail": str(item)})
+        return out
+    # fallback
+    return [{"detail": str(raw_findings)}]
+
+
+def summarize_severities(findings: List[Dict[str, Any]]) -> Dict[str, int]:
+    counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
+    for f in findings:
+        sev = normalize_severity(f.get("severity", "INFO"))
+        counts[sev] = counts.get(sev, 0) + 1
+    return counts
+
+
+def collect_reports() -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    """
+    Read all *_report.json from RAW_DIR and shape into a unified list.
+    Also compute overall status counts for the pie chart.
+    """
+    reports: List[Dict[str, Any]] = []
+    status_counts = {"PASS": 0, "WARN": 0, "FAIL": 0, "ERROR": 0, "UNKNOWN": 0}
+
     if not os.path.isdir(RAW_DIR):
-        return reports
+        return reports, status_counts
 
     for fname in sorted(os.listdir(RAW_DIR)):
-        if not fname.endswith(".json"):
+        if not fname.endswith("_report.json"):
             continue
         path = os.path.join(RAW_DIR, fname)
-        raw = load_json_file(path)
+        data = safe_load_json(path)
 
-        # If file failed to parse, mark error
-        if "_parse_error" in raw:
-            reports.append({
-                "check_name": fname.replace("_report.json", ""),
+        if "_parse_error" in data:
+            check_name = display_name_from_file(fname)
+            report = {
+                "file": fname,
+                "check_name": check_name,
                 "status": "ERROR",
-                "num_findings": 0,
-                "path": path,
-                "error": f"parse_error: {raw.get('_parse_error')}",
-                "raw": raw
-            })
+                "summary": f"parse_error: {data['_parse_error']}",
+                "findings": [{"detail": f"Parse error for {fname}", "severity": "HIGH"}],
+                "sev_counts": {"HIGH": 1, "MEDIUM": 0, "LOW": 0, "INFO": 0},
+                "raw_relpath": f"../raw/{fname}",
+                "timestamp": None,
+            }
+            status_counts["ERROR"] += 1
+            reports.append(report)
             continue
 
-        # Try common keys for check name
-        check_name = raw.get("check_name") or raw.get("name") or fname.replace("_report.json", "")
-
-        # Determine findings array length defensively
-        findings = raw.get("findings", [])
-        if findings is None:
-            findings = []
-        if not isinstance(findings, list):
-            # If singular or dict, convert to list
-            findings = [findings]
-
-        # Normalize status value (robust)
-        raw_status = raw.get("status")
+        # tolerant field extraction
+        check_name = data.get("check_name") or display_name_from_file(fname)
+        raw_status = data.get("status")
         status = normalize_status(raw_status)
 
-        reports.append({
+        summary = data.get("summary", "")
+        findings = coerce_findings(data.get("findings"))
+        sev_counts = summarize_severities(findings)
+
+        timestamp = data.get("timestamp") or data.get("time") or data.get("created_at")
+        raw_relpath = f"../raw/{fname}"
+
+        report = {
+            "file": fname,
             "check_name": check_name,
             "status": status,
-            "num_findings": len(findings),
-            "path": path,
-            "error": raw.get("error", ""),
-            "raw": raw
-        })
+            "summary": summary,
+            "findings": findings,
+            "sev_counts": sev_counts,
+            "raw_relpath": raw_relpath,
+            "timestamp": timestamp,
+        }
 
-    return reports
+        status_counts[status] = status_counts.get(status, 0) + 1
+        reports.append(report)
 
-
-def build_summary_df(reports):
-    """Return a pandas DataFrame from normalized reports list."""
-    if not reports:
-        return pd.DataFrame(columns=["check_name", "status", "num_findings", "path"])
-    df = pd.DataFrame(reports)
-    return df
+    return reports, status_counts
 
 
-def make_chart(df):
-    """Return Plotly HTML snippet for status distribution (or None)."""
-    if df.empty:
-        return None
-
-    counts = df["status"].value_counts().reindex(["PASS", "WARN", "FAIL", "ERROR", "UNKNOWN"], fill_value=0)
-    summary = counts.reset_index()
-    summary.columns = ["status", "count"]
-    fig = px.pie(
-        summary,
-        names="status",
-        values="count",
-        hole=0.5,
-        color="status",
-        color_discrete_map={
-            "PASS": "#4CAF50",
-            "WARN": "#FFB74D",
-            "FAIL": "#F44336",
-            "ERROR": "#9C27B0",
-            "UNKNOWN": "#9E9E9E",
-        },
-        title="OWASP Check Status Distribution"
-    )
-    fig.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=True)
-    return fig.to_html(full_html=False, include_plotlyjs="cdn")
-
-
-def render_html(df, chart_html):
-    """Render final HTML using Jinja2 template embedded here."""
-    env = Environment(loader=FileSystemLoader(searchpath="./"), autoescape=select_autoescape(["html", "xml"]))
-
-    template = env.from_string("""
+# -------------------------------
+# Template (inline)
+# -------------------------------
+TEMPLATE_HTML = r"""
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>OWASP Automation Report</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 30px; background:#f7f9fb; color:#222; }
-    header { margin-bottom: 20px; }
-    table { border-collapse: collapse; width:100%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
-    th, td { padding: 12px 10px; border-bottom:1px solid #eee; text-align:left; }
-    th { background:#2f3e46; color:#fff; font-weight:600; }
-    tr:nth-child(even) td { background:#fbfdff; }
-    .PASS { color:#1b8a1b; font-weight:700; }
-    .WARN { color:#b06a00; font-weight:700; }
-    .FAIL { color:#c23131; font-weight:700; }
-    .ERROR { color:#8e44ad; font-weight:700; }
-    .UNKNOWN { color:#777; font-weight:700; }
-    .container { max-width:1200px; margin:auto; }
-    .left { float:left; width:60%; }
-    .right { float:right; width:36%; }
-    .clearfix::after { content:''; display:table; clear:both; }
-    footer { margin-top: 30px; color:#666; font-size:13px; text-align:center;}
-    a.raw-link { color:#2a6fdb; text-decoration:none; }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OWASP Security Automation Report</title>
+<link rel="preconnect" href="https://cdn.plot.ly">
+<style>
+  :root{
+    --bg:#0f172a;           /* slate-900 */
+    --panel:#111827;        /* gray-900 */
+    --panel-2:#0b1220;      /* deep panel */
+    --muted:#94a3b8;        /* slate-400 */
+    --text:#e5e7eb;         /* gray-200 */
+    --accent:#60a5fa;       /* blue-400 */
+    --pass:#22c55e;         /* green-500 */
+    --warn:#f59e0b;         /* amber-500 */
+    --fail:#ef4444;         /* red-500 */
+    --error:#a855f7;        /* violet-500 */
+    --unknown:#9ca3af;      /* gray-400 */
+    --border:#1f2937;       /* gray-800 */
+    --chip:#1f2937;         /* gray-800 */
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:linear-gradient(160deg,#0b1220 0%, #0f172a 40%, #0b1220 100%);
+    color:var(--text); font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+    padding:24px;
+  }
+  .container{max-width:1200px; margin:0 auto;}
+  header{display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .title h1{margin:0; font-size:22px; font-weight:700}
+  .title .sub{color:var(--muted); font-size:12px}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap}
+  button.btn{
+    background:var(--panel); color:var(--text);
+    border:1px solid var(--border); padding:8px 12px; border-radius:10px;
+    cursor:pointer; transition:all .15s;
+  }
+  button.btn:hover{transform:translateY(-1px); border-color:#334155}
+  .grid{display:grid; grid-template-columns: 1fr 300px; gap:16px;}
+  @media (max-width: 960px){ .grid{grid-template-columns:1fr} }
+
+  .card{background:linear-gradient(160deg,var(--panel) 0%, var(--panel-2) 100%);
+        border:1px solid var(--border); border-radius:14px; padding:14px;}
+
+  /* Table */
+  table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;}
+  thead th{
+    text-align:left; font-size:12px; letter-spacing:.02em; color:var(--muted);
+    padding:10px 10px; border-bottom:1px solid var(--border); background:transparent; position:sticky; top:0;
+  }
+  tbody td{padding:12px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:hover td{background:rgba(148,163,184,.05)}
+  .status{font-weight:700; padding:2px 8px; border-radius:999px; display:inline-block}
+  .PASS{color:var(--pass); background:rgba(34,197,94,.1)}
+  .WARN{color:var(--warn); background:rgba(245,158,11,.12)}
+  .FAIL{color:var(--fail); background:rgba(239,68,68,.12)}
+  .ERROR{color:var(--error); background:rgba(168,85,247,.12)}
+  .UNKNOWN{color:var(--unknown); background:rgba(156,163,175,.12)}
+
+  .sev {display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap}
+  .chip{
+    font-size:11px; color:var(--text); background:var(--chip); border:1px solid var(--border);
+    padding:2px 8px; border-radius:999px;
+  }
+  .chip.HIGH{border-color:rgba(239,68,68,.6); color:var(--fail)}
+  .chip.MEDIUM{border-color:rgba(245,158,11,.6); color:var(--warn)}
+  .chip.LOW{border-color:rgba(34,197,94,.6); color:var(--pass)}
+  .chip.INFO{border-color:#334155; color:#cbd5e1}
+
+  .link{color:#93c5fd; text-decoration:none}
+  .link:hover{text-decoration:underline}
+
+  /* Findings details */
+  details{background:rgba(2,6,23,.35); border:1px solid var(--border); border-radius:10px; padding:10px; }
+  details + details{margin-top:10px}
+  summary{cursor:pointer; color:#c7d2fe; font-weight:600; outline:none}
+  .finding{margin-top:8px; padding:10px; border:1px dashed #334155; border-radius:8px; background:rgba(15,23,42,.35)}
+  .k{color:#94a3b8}
+  pre{white-space:pre-wrap; margin:8px 0; color:#e2e8f0}
+  .muted{color:var(--muted); font-size:12px}
+
+  /* Sidebar card */
+  .legend .row{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #1f2937}
+  .legend .row:last-child{border-bottom:0}
+
+  footer{margin-top:14px; color:var(--muted); font-size:12px; text-align:center}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
+<div class="container">
+  <header>
+    <div class="title">
       <h1>OWASP Security Automation Report</h1>
-      <p>Generated: {{ generated }}</p>
-    </header>
-
-    <div class="clearfix">
-      <div class="left">
-        <table>
-          <thead>
-            <tr><th>Check</th><th>Status</th><th>Findings</th><th>Raw JSON</th></tr>
-          </thead>
-          <tbody>
-            {% for r in rows %}
-            <tr>
-              <td>{{ r.check_name }}</td>
-              <td class="{{ r.status }}">{{ r.status }}</td>
-              <td>{{ r.num_findings }}</td>
-              <td><a class="raw-link" href="../raw/{{ r.check_name }}_report.json" target="_blank">Open</a></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="right">
-        <h3>Overall Status</h3>
-        {{ chart_html | safe }}
-        <p style="margin-top:10px">Pass: {{ counts.PASS }} &nbsp; | &nbsp; Warn: {{ counts.WARN }} &nbsp; | &nbsp; Fail: {{ counts.FAIL }}</p>
-      </div>
+      <div class="sub">Generated: {{ generated }}</div>
     </div>
+    <div class="toolbar">
+      <button class="btn" id="exportCsvBtn">Export CSV</button>
+      <button class="btn" id="exportJsonBtn">Export JSON</button>
+    </div>
+  </header>
 
-    <footer>
-      <p>OWASP_Automation Framework • {{ generated }}</p>
-    </footer>
+  <div class="grid">
+    <!-- Main Table -->
+    <section class="card">
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th style="width:26%">Check</th>
+            <th style="width:12%">Status</th>
+            <th style="width:18%">Findings</th>
+            <th style="width:30%">Summary</th>
+            <th style="width:14%">Raw</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reports %}
+          <tr>
+            <td>
+              <div style="font-weight:600">{{ r.check_name }}</div>
+              {% if r.timestamp %}
+                <div class="muted">Run at: {{ r.timestamp }}</div>
+              {% endif %}
+              {% if r.findings and r.findings|length > 0 %}
+                <details>
+                  <summary>View Findings ({{ r.findings|length }})</summary>
+                  {% for f in r.findings %}
+                    <div class="finding">
+                      {% if f.severity %}
+                        <div class="chip {{ f.severity | upper }}">{{ f.severity | upper }}</div>
+                      {% endif %}
+                      {% if f.message %}
+                        <div><span class="k">Message:</span> {{ f.message }}</div>
+                      {% endif %}
+                      {% if f.detail %}
+                        <div><span class="k">Detail:</span> {{ f.detail }}</div>
+                      {% endif %}
+                      {% if f.issue %}
+                        <div><span class="k">Issue:</span> {{ f.issue }}</div>
+                      {% endif %}
+                      {% if f.recommendation %}
+                        <div><span class="k">Recommendation:</span> {{ f.recommendation }}</div>
+                      {% endif %}
+                      {% if f.expected %}
+                        <div><span class="k">Expected:</span> {{ f.expected }}</div>
+                      {% endif %}
+                      {% if f.actual is defined %}
+                        <div><span class="k">Actual:</span> {{ f.actual }}</div>
+                      {% endif %}
+                      {% if f.url %}
+                        <div><span class="k">URL:</span> <a class="link" href="{{ f.url }}" target="_blank" rel="noopener">{{ f.url }}</a></div>
+                      {% endif %}
+                      {% if f.endpoint %}
+                        <div><span class="k">Endpoint:</span> {{ f.endpoint }}</div>
+                      {% endif %}
+                      {% if f.params %}
+                        <div><span class="k">Params:</span> <pre>{{ f.params | tojson(indent=2) }}</pre></div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </details>
+              {% endif %}
+            </td>
+            <td>
+              <span class="status {{ r.status }}">{{ r.status }}</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: {{ r.sev_counts.HIGH }}</span>
+                <span class="chip MEDIUM">MED: {{ r.sev_counts.MEDIUM }}</span>
+                <span class="chip LOW">LOW: {{ r.sev_counts.LOW }}</span>
+                <span class="chip INFO">INFO: {{ r.sev_counts.INFO }}</span>
+              </div>
+            </td>
+            <td>{{ r.summary }}</td>
+            <td><a class="link" href="{{ r.raw_relpath }}" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Sidebar: Pie + Legend -->
+    <aside class="card">
+      <div id="pie" style="height:280px;"></div>
+      <div class="legend">
+        <div class="row"><span>PASS</span><span>{{ status_counts.PASS }}</span></div>
+        <div class="row"><span>WARN</span><span>{{ status_counts.WARN }}</span></div>
+        <div class="row"><span>FAIL</span><span>{{ status_counts.FAIL }}</span></div>
+        <div class="row"><span>ERROR</span><span>{{ status_counts.ERROR }}</span></div>
+        <div class="row"><span>UNKNOWN</span><span>{{ status_counts.UNKNOWN }}</span></div>
+      </div>
+    </aside>
   </div>
+
+  <footer>
+    OWASP_Automation • {{ generated }}
+  </footer>
+</div>
+
+<!-- Plotly Pie (via CDN) -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+  // Data for pie chart from server
+  const statusCounts = {{ status_counts | tojson }};
+  const pieData = [{
+    values: [statusCounts.PASS, statusCounts.WARN, statusCounts.FAIL, statusCounts.ERROR, statusCounts.UNKNOWN],
+    labels: ['PASS', 'WARN', 'FAIL', 'ERROR', 'UNKNOWN'],
+    type: 'pie',
+    hole: .55,
+    textinfo: 'label+value',
+    marker: { colors: ['#22c55e','#f59e0b','#ef4444','#a855f7','#9ca3af'] }
+  }];
+  Plotly.newPlot('pie', pieData, {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor : 'rgba(0,0,0,0)',
+    margin:{l:0,r:0,t:0,b:0},
+    showlegend:false
+  }, {displayModeBar:false});
+
+  // Current table data for export (exactly what's rendered)
+  const exported = {{ reports | tojson }};
+
+  // Export CSV
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const rows = [];
+    rows.push(['Check','Status','High','Medium','Low','Info','Summary','Raw']);
+    exported.forEach(r => {
+      rows.push([
+        r.check_name,
+        r.status,
+        r.sev_counts.HIGH || 0,
+        r.sev_counts.MEDIUM || 0,
+        r.sev_counts.LOW || 0,
+        r.sev_counts.INFO || 0,
+        (r.summary || '').replace(/\n+/g,' ').trim(),
+        r.raw_relpath
+      ]);
+      // add each finding as sub-rows for clarity
+      if (Array.isArray(r.findings)) {
+        r.findings.forEach((f, idx) => {
+          const sev = (f.severity || 'INFO').toUpperCase();
+          const msg = f.message || f.issue || f.detail || '';
+          rows.push([`  - Finding ${idx+1}`, sev, '', '', '', '', msg, '']);
+        });
+      }
+    });
+    const csv = rows.map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "owasp_report.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Export JSON (the same shaped data you see)
+  document.getElementById('exportJsonBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(exported, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "owasp_report.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>
 </body>
 </html>
-""")
+"""
 
-    # compute counts for display
-    counts = {
-        "PASS": int((df["status"] == "PASS").sum()) if not df.empty else 0,
-        "WARN": int((df["status"] == "WARN").sum()) if not df.empty else 0,
-        "FAIL": int((df["status"] == "FAIL").sum()) if not df.empty else 0
-    }
 
-    html = template.render(rows=df.to_dict(orient="records"), chart_html=chart_html, generated=datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%SZ"), counts=counts)
+def render_html(reports: List[Dict[str, Any]], status_counts: Dict[str, int]) -> str:
+    env = Environment(
+        loader=BaseLoader(),
+        autoescape=select_autoescape(["html", "xml"])
+    )
+    template = env.from_string(TEMPLATE_HTML)
+    html = template.render(
+        reports=reports,
+        status_counts=status_counts,
+        generated=datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%SZ"),
+    )
     return html
 
 
 def main():
-    if not os.path.isdir(RAW_DIR):
-        print(f"No raw reports directory found: {RAW_DIR}")
-        return
-
     os.makedirs(AGG_DIR, exist_ok=True)
-
-    reports = load_reports()
-    df = build_summary_df(reports)
-    chart_html = make_chart(df)
-    html = render_html(df, chart_html)
-
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
-        fh.write(html)
-
-    print(f"✅ HTML report generated at: {OUTPUT_FILE}")
+    reports, status_counts = collect_reports()
+    html = render_html(reports, status_counts)
+    with open(OUT_FILE, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"✅ OWASP Dashboard generated successfully at: {OUT_FILE}")
 
 
 if __name__ == "__main__":

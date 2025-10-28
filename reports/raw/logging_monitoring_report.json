@@ -1,0 +1,33 @@
+{
+  "check_name": "logging_monitoring_check",
+  "target": "http://127.0.0.1:5002",
+  "status": "FAIL",
+  "summary": "No accessible logging endpoints found.",
+  "findings": [
+    {
+      "endpoint": "/api/logs",
+      "status_code": null,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /api/logs (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1069e2fd0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "structured": false,
+      "has_timestamp": false,
+      "has_event_keyword": false
+    },
+    {
+      "endpoint": "/admin/logs",
+      "status_code": null,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /admin/logs (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x106a3f950>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "structured": false,
+      "has_timestamp": false,
+      "has_event_keyword": false
+    },
+    {
+      "endpoint": "/system/logs",
+      "status_code": null,
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /system/logs (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x106ac42b0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "structured": false,
+      "has_timestamp": false,
+      "has_event_keyword": false
+    }
+  ],
+  "timestamp": "2025-10-28T14:08:59.629383Z"
+}

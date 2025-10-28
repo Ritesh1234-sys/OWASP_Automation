@@ -1,0 +1,63 @@
+{
+  "check_name": "activity_log_check",
+  "status": "MISSING_LOGS",
+  "summary": "Timely logs: 0/4 (0.0%) | Missing: 4, Delayed: 0",
+  "freshness_score": 0.0,
+  "findings": [
+    {
+      "user": "alice",
+      "action_url": "http://127.0.0.1:5002/api/user/alice/update-profile",
+      "detail": "\u274c No activity log found for action 'update-profile'",
+      "expected_log_url": "http://127.0.0.1:5002/api/logs/alice"
+    },
+    {
+      "user": "alice",
+      "action_url": "http://127.0.0.1:5002/api/user/alice/logout",
+      "detail": "\u274c No activity log found for action 'logout'",
+      "expected_log_url": "http://127.0.0.1:5002/api/logs/alice"
+    },
+    {
+      "user": "bob",
+      "action_url": "http://127.0.0.1:5002/api/user/bob/update-profile",
+      "detail": "\u274c No activity log found for action 'update-profile'",
+      "expected_log_url": "http://127.0.0.1:5002/api/logs/bob"
+    },
+    {
+      "user": "bob",
+      "action_url": "http://127.0.0.1:5002/api/user/bob/logout",
+      "detail": "\u274c No activity log found for action 'logout'",
+      "expected_log_url": "http://127.0.0.1:5002/api/logs/bob"
+    }
+  ],
+  "attempts": [
+    {
+      "url": "http://127.0.0.1:5002/api/user/{username}/update-profile",
+      "method": "POST",
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /api/user/%7Busername%7D/update-profile (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1094002f0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "action_time": "2025-10-28T14:07:34.552937+00:00",
+      "user": "alice"
+    },
+    {
+      "url": "http://127.0.0.1:5002/api/user/{username}/logout",
+      "method": "POST",
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /api/user/%7Busername%7D/logout (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x109326ad0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "action_time": "2025-10-28T14:07:36.564101+00:00",
+      "user": "alice"
+    },
+    {
+      "url": "http://127.0.0.1:5002/api/user/{username}/update-profile",
+      "method": "POST",
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /api/user/%7Busername%7D/update-profile (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x109410180>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "action_time": "2025-10-28T14:07:38.574175+00:00",
+      "user": "bob"
+    },
+    {
+      "url": "http://127.0.0.1:5002/api/user/{username}/logout",
+      "method": "POST",
+      "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /api/user/%7Busername%7D/logout (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1093c7680>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "action_time": "2025-10-28T14:07:40.580114+00:00",
+      "user": "bob"
+    }
+  ],
+  "timestamp": "2025-10-28T14:07:42.588403+00:00"
+}

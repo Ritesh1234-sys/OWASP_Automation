@@ -1,0 +1,8 @@
+{
+  "check_name": "ssl_implementation_check",
+  "target": "https://example.com",
+  "status": "PASS",
+  "summary": "0 HIGH, 0 MEDIUM, 0 LOW, 0 INFO",
+  "findings": [],
+  "timestamp": "2025-10-28T14:08:00.547102Z"
+}

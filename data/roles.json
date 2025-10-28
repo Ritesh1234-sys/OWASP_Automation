@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "base_url": "http://127.0.0.1:5002",
+    "token": "ADMIN_TOKEN_HERE"
+  },
+  "user": {
+    "base_url": "http://127.0.0.1:5002",
+    "token": "USER_TOKEN_HERE"
+  },
+  "guest": {
+    "base_url": "http://127.0.0.1:5002",
+    "token": ""
+  }
+}

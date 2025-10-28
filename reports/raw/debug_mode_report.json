@@ -1,0 +1,63 @@
+{
+  "check_name": "debug_mode_check",
+  "status": "PASS",
+  "timestamp": "2025-10-28T19:52:43.056158",
+  "summary": "No debug indicators detected across 5 endpoints.",
+  "findings": [
+    {
+      "endpoint": "https://example.com/",
+      "status_code": 200,
+      "findings": [
+        {
+          "message": "No debug indicators found.",
+          "severity": "Low",
+          "recommendation": "Debug mode appears safely disabled."
+        }
+      ]
+    },
+    {
+      "endpoint": "https://example.com/login",
+      "status_code": 404,
+      "findings": [
+        {
+          "message": "No debug indicators found.",
+          "severity": "Low",
+          "recommendation": "Debug mode appears safely disabled."
+        }
+      ]
+    },
+    {
+      "endpoint": "https://example.com/api",
+      "status_code": 404,
+      "findings": [
+        {
+          "message": "No debug indicators found.",
+          "severity": "Low",
+          "recommendation": "Debug mode appears safely disabled."
+        }
+      ]
+    },
+    {
+      "endpoint": "https://example.com/admin",
+      "status_code": 404,
+      "findings": [
+        {
+          "message": "No debug indicators found.",
+          "severity": "Low",
+          "recommendation": "Debug mode appears safely disabled."
+        }
+      ]
+    },
+    {
+      "endpoint": "https://example.com/status",
+      "status_code": 404,
+      "findings": [
+        {
+          "message": "No debug indicators found.",
+          "severity": "Low",
+          "recommendation": "Debug mode appears safely disabled."
+        }
+      ]
+    }
+  ]
+}

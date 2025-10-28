@@ -45,3 +45,224 @@
   args:
     - --target
     - http://127.0.0.1:5002/password_form
+
+- name: transport_security
+  module: src/transport_security_check.py
+  output: reports/raw/transport_security_report.json
+  args:
+    - --target
+    - https://example.com
+
+- name: role_authorization_check
+  module: src/role_authorization_check.py
+  output: reports/raw/role_authorization_report.json
+  args:
+    - --roles-file
+    - data/roles.json
+    - --restricted-file
+    - data/restricted_endpoints.json
+
+- name: idor_user_data_check
+  module: src/idor_user_data_check.py
+  output: reports/raw/idor_user_data_report.json
+  args:
+    - --users-file
+    - data/users.json
+    - --endpoints-file
+    - data/idor_endpoints.json
+
+- name: activity_log_check
+  module: src/activity_log_check.py
+  output: reports/raw/activity_log_report.json
+  args:
+    - --config-file
+    - data/activity_check_config.json
+
+# If you use the simple version (base_url/paths), use the target/methods version instead of the JSON config one.
+# Keep ONLY ONE of the request_efficiency_check entries enabled at a time.
+- name: request_efficiency_check
+  module: src/request_efficiency_check.py
+  output: reports/raw/request_efficiency_report.json
+  args:
+    - --config
+    - data/api_endpoints.json
+
+- name: debug_mode_check
+  module: src/debug_mode_check.py
+  output: reports/raw/debug_mode_report.json
+  args:
+    - --target
+    - https://example.com
+    - --endpoints
+    - /
+    - /login
+    - /api
+    - /admin
+    - /status
+
+- name: file_validation_check
+  module: src/file_validation_check.py
+  output: reports/raw/file_validation_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5002/upload
+    - --allowed-ext
+    - jpg,png,pdf
+    - --max-size
+    - "5242880"
+
+- name: cors_policy_check
+  module: src/cors_policy_check.py
+  output: reports/raw/cors_policy_report.json
+  args:
+    - --target
+    - https://example.com
+    - --origins
+    - https://example.com,https://evil.example,null
+    - --methods
+    - GET,POST
+    - --request-headers
+    - Authorization,Content-Type
+
+- name: ssl_implementation_check
+  module: src/ssl_implementation_check.py
+  output: reports/raw/ssl_implementation_report.json
+  args:
+    - --target
+    - https://example.com
+    - --http-fallback
+    - http://example.com
+    - --warn-days
+    - "30"
+    - --fail-days
+    - "7"
+
+- name: admin_temp_email_check
+  module: src/admin_temp_email_check.py
+  output: reports/raw/admin_temp_email_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5002/register_admin
+    - --emails-file
+    - data/test_emails.txt
+    - --field-name
+    - email
+
+- name: subdomain_enumeration_check
+  module: src/subdomain_enumeration_check.py
+  output: reports/raw/subdomain_enumeration_report.json
+  args:
+    - --target-domain
+    - example.com
+    - --dns-servers
+    - 8.8.8.8,1.1.1.1
+
+- name: email_spoof_check
+  module: src/email_spoof_check.py
+  output: reports/raw/email_spoof_report.json
+  args:
+    - --domain
+    - example.com         # change to your target domain
+    - --dkim-selectors
+    - default,selector1,google
+    - --timeout
+    - "3.0"
+
+- name: account_lockout_check
+  module: src/account_lockout_check.py
+  output: reports/raw/account_lockout_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5001/login
+    - --username
+    - alice
+    - --correct-password
+    - correcthorsebatterystaple
+    - --bad-passwords
+    - data/bad_passwords.txt
+    - --attempts
+    - "6"
+    - --delay
+    - "1"
+    - --use-json  # remove this flag if your login endpoint expects form-data (application/x-www-form-urlencoded)
+
+- name: url_data_leak_check
+  module: src/url_data_leak_check.py
+  output: reports/raw/url_data_leak_report.json
+  args:
+    - --target
+    - https://example.com           # Replace with your actual app URL
+    - --max-depth
+    - "2"
+    - --sensitive-keys
+    - password,token,auth,apikey,session,email
+
+- name: request_timeout_check
+  module: src/request_timeout_check.py
+  output: reports/raw/request_timeout_report.json
+  args:
+    - --target
+    - http://127.0.0.1:5001/login
+    - --expected-timeout
+    - "30"
+    - --slow-bytes
+    - "10240"
+    - --slow-interval
+    - "2"
+    - --chunk-size
+    - "1024"
+    - --concurrency
+    - "3"
+    - --simple-endpoint
+    - "/"
+
+- name: api_concurrency_check
+  module: src/api_concurrency_check.py
+  output: reports/raw/api_concurrency_report.json
+  args:
+    - --target
+    - https://example.com/api/public-data     # 🔁 replace with open API endpoint
+    - --concurrency
+    - "10"                                    # number of parallel threads
+    - --requests
+    - "30"                                    # total requests to send
+    - --timeout
+    - "5"                                     # timeout per request (seconds)
+
+- name: login_throttling_check
+  module: src/login_throttling_check.py
+  output: reports/raw/login_throttling_report.json
+  args:
+    - --target
+    - https://example.com/api/login       # 🔁 replace with your CMS login API endpoint
+    - --username
+    - admin                               # test account username
+    - --password
+    - wrongpassword                       # intentionally invalid to trigger throttling
+    - --attempts
+    - "10"
+    - --delay
+    - "0.3"
+    - --use-json
+
+- name: no_unwanted_keys_exposure_check
+  module: src/no_unwanted_keys_exposure_check.py
+  output: reports/raw/no_unwanted_keys_exposure_report.json
+  args:
+    - --target
+    - https://example.com                # 🔁 replace with your base URL
+    - --endpoints
+    - /
+    - /api/config
+    - /static/js/app.js
+    - /manifest.json
+
+- name: logging_monitoring_check
+  module: src/logging_monitoring_check.py
+  output: reports/raw/logging_monitoring_report.json
+  args:
+    - --base-url
+    - http://127.0.0.1:5002
+    - --log-endpoints
+    - /api/logs,/admin/logs,/system/logs
+    - --simulate-events

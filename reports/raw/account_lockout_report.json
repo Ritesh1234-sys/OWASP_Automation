@@ -1,0 +1,76 @@
+{
+  "check_name": "account_lockout_check",
+  "target": "http://127.0.0.1:5001/login",
+  "username": "alice",
+  "attempts_configured": 6,
+  "attempt_delay_seconds": 1.0,
+  "timestamp": "2025-10-28T14:08:20.465906Z",
+  "initial_login": {
+    "status_code": null,
+    "text": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x109240590>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+    "elapsed": 0.0,
+    "ok": false,
+    "headers": {}
+  },
+  "failed_attempts": [
+    {
+      "attempt": 1,
+      "password_used": "password",
+      "status_code": null,
+      "ok": false,
+      "elapsed": 0.0,
+      "text_snippet": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10915efd0>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+    },
+    {
+      "attempt": 2,
+      "password_used": "123456",
+      "status_code": null,
+      "ok": false,
+      "elapsed": 0.0,
+      "text_snippet": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10915ed50>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+    },
+    {
+      "attempt": 3,
+      "password_used": "12345678",
+      "status_code": null,
+      "ok": false,
+      "elapsed": 0.0,
+      "text_snippet": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1091d6b10>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+    },
+    {
+      "attempt": 4,
+      "password_used": "qwerty",
+      "status_code": null,
+      "ok": false,
+      "elapsed": 0.0,
+      "text_snippet": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1091d62c0>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+    },
+    {
+      "attempt": 5,
+      "password_used": "abc123",
+      "status_code": null,
+      "ok": false,
+      "elapsed": 0.0,
+      "text_snippet": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1091f1910>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+    },
+    {
+      "attempt": 6,
+      "password_used": "letmein",
+      "status_code": null,
+      "ok": false,
+      "elapsed": 0.0,
+      "text_snippet": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1091ff240>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+    }
+  ],
+  "post_attempt_login": {
+    "status_code": null,
+    "text": "HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1091ff9b0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+    "elapsed": 0.0,
+    "ok": false,
+    "headers": {}
+  },
+  "lock_detected": false,
+  "lock_details": null,
+  "summary": "No account lockout detected \u2014 the user can still login after repeated failed attempts. This could indicate lack of account lockout policy or it may be enforced by different protections (e.g., CAPTCHA, IP block).",
+  "status": "FAIL"
+}

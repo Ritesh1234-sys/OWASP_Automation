@@ -16,8 +16,8 @@
     "validation": {
         "issued_at": 1761554681,
         "expires_at": 1761641081,
-        "current_time": 1761580716,
-        "expired": false,
+        "current_time": 1761660443,
+        "expired": true,
         "token_lifetime_seconds": 86400,
         "signature_valid": null
     }

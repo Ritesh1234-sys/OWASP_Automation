@@ -1,21 +1,4 @@
 {
   "url": "http://127.0.0.1:5002/set_cookies_demo",
-  "status": 200,
-  "content_length": 40,
-  "findings": [
-    {
-      "pattern": "email",
-      "count": 1,
-      "examples": [
-        "alice@example.com"
-      ]
-    },
-    {
-      "pattern": "jwt",
-      "count": 1,
-      "examples": [
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bad_payload.signature"
-      ]
-    }
-  ]
+  "error": "HTTPConnectionPool(host='127.0.0.1', port=5002): Max retries exceeded with url: /set_cookies_demo (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1064402f0>: Failed to establish a new connection: [Errno 61] Connection refused'))"
 }

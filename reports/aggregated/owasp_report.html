@@ -1,94 +1,1890 @@
 
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>OWASP Automation Report</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 30px; background:#f7f9fb; color:#222; }
-    header { margin-bottom: 20px; }
-    table { border-collapse: collapse; width:100%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
-    th, td { padding: 12px 10px; border-bottom:1px solid #eee; text-align:left; }
-    th { background:#2f3e46; color:#fff; font-weight:600; }
-    tr:nth-child(even) td { background:#fbfdff; }
-    .PASS { color:#1b8a1b; font-weight:700; }
-    .WARN { color:#b06a00; font-weight:700; }
-    .FAIL { color:#c23131; font-weight:700; }
-    .ERROR { color:#8e44ad; font-weight:700; }
-    .UNKNOWN { color:#777; font-weight:700; }
-    .container { max-width:1200px; margin:auto; }
-    .left { float:left; width:60%; }
-    .right { float:right; width:36%; }
-    .clearfix::after { content:''; display:table; clear:both; }
-    footer { margin-top: 30px; color:#666; font-size:13px; text-align:center;}
-    a.raw-link { color:#2a6fdb; text-decoration:none; }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OWASP Security Automation Report</title>
+<link rel="preconnect" href="https://cdn.plot.ly">
+<style>
+  :root{
+    --bg:#0f172a;           /* slate-900 */
+    --panel:#111827;        /* gray-900 */
+    --panel-2:#0b1220;      /* deep panel */
+    --muted:#94a3b8;        /* slate-400 */
+    --text:#e5e7eb;         /* gray-200 */
+    --accent:#60a5fa;       /* blue-400 */
+    --pass:#22c55e;         /* green-500 */
+    --warn:#f59e0b;         /* amber-500 */
+    --fail:#ef4444;         /* red-500 */
+    --error:#a855f7;        /* violet-500 */
+    --unknown:#9ca3af;      /* gray-400 */
+    --border:#1f2937;       /* gray-800 */
+    --chip:#1f2937;         /* gray-800 */
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:linear-gradient(160deg,#0b1220 0%, #0f172a 40%, #0b1220 100%);
+    color:var(--text); font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+    padding:24px;
+  }
+  .container{max-width:1200px; margin:0 auto;}
+  header{display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .title h1{margin:0; font-size:22px; font-weight:700}
+  .title .sub{color:var(--muted); font-size:12px}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap}
+  button.btn{
+    background:var(--panel); color:var(--text);
+    border:1px solid var(--border); padding:8px 12px; border-radius:10px;
+    cursor:pointer; transition:all .15s;
+  }
+  button.btn:hover{transform:translateY(-1px); border-color:#334155}
+  .grid{display:grid; grid-template-columns: 1fr 300px; gap:16px;}
+  @media (max-width: 960px){ .grid{grid-template-columns:1fr} }
+
+  .card{background:linear-gradient(160deg,var(--panel) 0%, var(--panel-2) 100%);
+        border:1px solid var(--border); border-radius:14px; padding:14px;}
+
+  /* Table */
+  table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;}
+  thead th{
+    text-align:left; font-size:12px; letter-spacing:.02em; color:var(--muted);
+    padding:10px 10px; border-bottom:1px solid var(--border); background:transparent; position:sticky; top:0;
+  }
+  tbody td{padding:12px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:hover td{background:rgba(148,163,184,.05)}
+  .status{font-weight:700; padding:2px 8px; border-radius:999px; display:inline-block}
+  .PASS{color:var(--pass); background:rgba(34,197,94,.1)}
+  .WARN{color:var(--warn); background:rgba(245,158,11,.12)}
+  .FAIL{color:var(--fail); background:rgba(239,68,68,.12)}
+  .ERROR{color:var(--error); background:rgba(168,85,247,.12)}
+  .UNKNOWN{color:var(--unknown); background:rgba(156,163,175,.12)}
+
+  .sev {display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap}
+  .chip{
+    font-size:11px; color:var(--text); background:var(--chip); border:1px solid var(--border);
+    padding:2px 8px; border-radius:999px;
+  }
+  .chip.HIGH{border-color:rgba(239,68,68,.6); color:var(--fail)}
+  .chip.MEDIUM{border-color:rgba(245,158,11,.6); color:var(--warn)}
+  .chip.LOW{border-color:rgba(34,197,94,.6); color:var(--pass)}
+  .chip.INFO{border-color:#334155; color:#cbd5e1}
+
+  .link{color:#93c5fd; text-decoration:none}
+  .link:hover{text-decoration:underline}
+
+  /* Findings details */
+  details{background:rgba(2,6,23,.35); border:1px solid var(--border); border-radius:10px; padding:10px; }
+  details + details{margin-top:10px}
+  summary{cursor:pointer; color:#c7d2fe; font-weight:600; outline:none}
+  .finding{margin-top:8px; padding:10px; border:1px dashed #334155; border-radius:8px; background:rgba(15,23,42,.35)}
+  .k{color:#94a3b8}
+  pre{white-space:pre-wrap; margin:8px 0; color:#e2e8f0}
+  .muted{color:var(--muted); font-size:12px}
+
+  /* Sidebar card */
+  .legend .row{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #1f2937}
+  .legend .row:last-child{border-bottom:0}
+
+  footer{margin-top:14px; color:var(--muted); font-size:12px; text-align:center}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
+<div class="container">
+  <header>
+    <div class="title">
       <h1>OWASP Security Automation Report</h1>
-      <p>Generated: 2025-10-27 15:59:31Z</p>
-    </header>
-
-    <div class="clearfix">
-      <div class="left">
-        <table>
-          <thead>
-            <tr><th>Check</th><th>Status</th><th>Findings</th><th>Raw JSON</th></tr>
-          </thead>
-          <tbody>
-            
-            <tr>
-              <td>bruteforce</td>
-              <td class="UNKNOWN">UNKNOWN</td>
-              <td>0</td>
-              <td><a class="raw-link" href="../raw/bruteforce_report.json" target="_blank">Open</a></td>
-            </tr>
-            
-            <tr>
-              <td>cookie_scan</td>
-              <td class="UNKNOWN">UNKNOWN</td>
-              <td>10</td>
-              <td><a class="raw-link" href="../raw/cookie_scan_report.json" target="_blank">Open</a></td>
-            </tr>
-            
-            <tr>
-              <td>jwt_verify</td>
-              <td class="UNKNOWN">UNKNOWN</td>
-              <td>0</td>
-              <td><a class="raw-link" href="../raw/jwt_verify_report.json" target="_blank">Open</a></td>
-            </tr>
-            
-            <tr>
-              <td>password_validation</td>
-              <td class="FAIL">FAIL</td>
-              <td>1</td>
-              <td><a class="raw-link" href="../raw/password_validation_report.json" target="_blank">Open</a></td>
-            </tr>
-            
-            <tr>
-              <td>response_data</td>
-              <td class="PASS">PASS</td>
-              <td>2</td>
-              <td><a class="raw-link" href="../raw/response_data_report.json" target="_blank">Open</a></td>
-            </tr>
-            
-          </tbody>
-        </table>
-      </div>
-
-      <div class="right">
-        <h3>Overall Status</h3>
-        <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
-        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.1.min.js" integrity="sha256-HUEFyfiTnZJxCxur99FjbKYTvKSzwDaD3/x5TqHpFu4=" crossorigin="anonymous"></script>                <div id="8a18c714-77ec-4796-b507-954203b3e4f6" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("8a18c714-77ec-4796-b507-954203b3e4f6")) {                    Plotly.newPlot(                        "8a18c714-77ec-4796-b507-954203b3e4f6",                        [{"customdata":[["PASS"],["WARN"],["FAIL"],["ERROR"],["UNKNOWN"]],"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"hole":0.5,"hovertemplate":"status=%{customdata[0]}\u003cbr\u003ecount=%{value}\u003cextra\u003e\u003c\u002fextra\u003e","labels":["PASS","WARN","FAIL","ERROR","UNKNOWN"],"legendgroup":"","marker":{"colors":["#4CAF50","#FFB74D","#F44336","#9C27B0","#9E9E9E"]},"name":"","showlegend":true,"values":{"dtype":"i1","bdata":"AQABAAM="},"type":"pie"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"legend":{"tracegroupgap":0},"title":{"text":"OWASP Check Status Distribution"},"margin":{"l":0,"r":0,"t":30,"b":0},"showlegend":true},                        {"responsive": true}                    )                };            </script>        </div>
-        <p style="margin-top:10px">Pass: 1 &nbsp; | &nbsp; Warn: 0 &nbsp; | &nbsp; Fail: 1</p>
-      </div>
+      <div class="sub">Generated: 2025-10-28 14:08:59Z</div>
     </div>
+    <div class="toolbar">
+      <button class="btn" id="exportCsvBtn">Export CSV</button>
+      <button class="btn" id="exportJsonBtn">Export JSON</button>
+    </div>
+  </header>
 
-    <footer>
-      <p>OWASP_Automation Framework • 2025-10-27 15:59:31Z</p>
-    </footer>
+  <div class="grid">
+    <!-- Main Table -->
+    <section class="card">
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th style="width:26%">Check</th>
+            <th style="width:12%">Status</th>
+            <th style="width:18%">Findings</th>
+            <th style="width:30%">Summary</th>
+            <th style="width:14%">Raw</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">account_lockout_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:20.465906Z</div>
+              
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>No account lockout detected — the user can still login after repeated failed attempts. This could indicate lack of account lockout policy or it may be enforced by different protections (e.g., CAPTCHA, IP block).</td>
+            <td><a class="link" href="../raw/account_lockout_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">activity_log_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:07:42.588403+00:00</div>
+              
+              
+                <details>
+                  <summary>View Findings (4)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> ❌ No activity log found for action &#39;update-profile&#39;</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> ❌ No activity log found for action &#39;logout&#39;</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> ❌ No activity log found for action &#39;update-profile&#39;</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> ❌ No activity log found for action &#39;logout&#39;</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status WARN">WARN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 4</span>
+              </div>
+            </td>
+            <td>Timely logs: 0/4 (0.0%) | Missing: 4, Delayed: 0</td>
+            <td><a class="link" href="../raw/activity_log_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">admin_temp_email_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:00.806883Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (6)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip WARN">WARN</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Could not connect to http://127.0.0.1:5002/register_admin for &#39;admin@example.com&#39;. Server may be unreachable.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> request_error</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip WARN">WARN</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Could not connect to http://127.0.0.1:5002/register_admin for &#39;test@ebpearls.com&#39;. Server may be unreachable.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> request_error</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip WARN">WARN</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Could not connect to http://127.0.0.1:5002/register_admin for &#39;tempadmin@mailinator.com&#39;. Server may be unreachable.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> request_error</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip WARN">WARN</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Could not connect to http://127.0.0.1:5002/register_admin for &#39;fakeadmin@tempmail.com&#39;. Server may be unreachable.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> request_error</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip WARN">WARN</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Could not connect to http://127.0.0.1:5002/register_admin for &#39;admin@guerrillamail.com&#39;. Server may be unreachable.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> request_error</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip WARN">WARN</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Could not connect to http://127.0.0.1:5002/register_admin for &#39;goodadmin@company.org&#39;. Server may be unreachable.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> request_error</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status UNKNOWN">UNKNOWN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 6</span>
+              </div>
+            </td>
+            <td>WARN: 6</td>
+            <td><a class="link" href="../raw/admin_temp_email_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">api_concurrency_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:40.326331Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (1)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Recommendation:</span> Investigate performance degradation under concurrent requests.</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 1</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>30/30 requests failed under concurrency load.</td>
+            <td><a class="link" href="../raw/api_concurrency_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">Bruteforce</div>
+              
+              
+            </td>
+            <td>
+              <span class="status UNKNOWN">UNKNOWN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td></td>
+            <td><a class="link" href="../raw/bruteforce_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">Cookie Scan</div>
+              
+              
+            </td>
+            <td>
+              <span class="status UNKNOWN">UNKNOWN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td></td>
+            <td><a class="link" href="../raw/cookie_scan_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">cors_policy_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:07:54.190233Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (6)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> no_cors_headers</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> no_cors_headers</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> no_cors_headers</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> no_cors_headers</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> no_cors_headers</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.</div>
+                      
+                      
+                        <div><span class="k">Issue:</span> no_cors_headers</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 6</span>
+              </div>
+            </td>
+            <td>CORS configuration looks safe for tested scenarios.</td>
+            <td><a class="link" href="../raw/cors_policy_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">debug_mode_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T19:52:43.056158</div>
+              
+              
+                <details>
+                  <summary>View Findings (5)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> https://example.com/</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> https://example.com/login</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> https://example.com/api</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> https://example.com/admin</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> https://example.com/status</div>
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 5</span>
+              </div>
+            </td>
+            <td>No debug indicators detected across 5 endpoints.</td>
+            <td><a class="link" href="../raw/debug_mode_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">email_spoof_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:20.202463Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (4)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> MX records: </div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> SPF `all` qualifier: -all. This is good (strict deny).</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> DMARC policy is reject. This helps prevent spoofing.</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip INFO">INFO</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Found DKIM public key(s) for selectors: default, selector1, google</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 4</span>
+              </div>
+            </td>
+            <td>Domain has strong anti-spoofing controls (DMARC enforce + SPF/DKIM).</td>
+            <td><a class="link" href="../raw/email_spoof_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">file_validation_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:07:48.102301Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (9)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Accepted (HTTP 200–299)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x10a398440&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Accepted (HTTP 200–299)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x109de7390&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Accepted (HTTP 200–299)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x109de7750&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Rejected (HTTP 4xx)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x109e575c0&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Rejected (HTTP 4xx)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x109e57bb0&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Rejected (HTTP 4xx)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x10a3315b0&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Rejected (HTTP 4xx)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x10a33acf0&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Rejected (HTTP 4xx)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x10a33b350&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Expected:</span> Rejected (HTTP 4xx)</div>
+                      
+                      
+                        <div><span class="k">Actual:</span> HTTPConnectionPool(host=&#39;127.0.0.1&#39;, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x10a33b790&gt;: Failed to establish a new connection: [Errno 61] Connection refused&#39;))</div>
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 9</span>
+              </div>
+            </td>
+            <td>All file validation checks failed.</td>
+            <td><a class="link" href="../raw/file_validation_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">idor_user_data_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:07:34.328685+00:00</div>
+              
+              
+            </td>
+            <td>
+              <span class="status WARN">WARN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>No cross-user data access detected.</td>
+            <td><a class="link" href="../raw/idor_user_data_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">Jwt Verify</div>
+              
+              
+            </td>
+            <td>
+              <span class="status UNKNOWN">UNKNOWN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td></td>
+            <td><a class="link" href="../raw/jwt_verify_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">logging_monitoring_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:59.629383Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (3)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /api/logs</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /admin/logs</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /system/logs</div>
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 3</span>
+              </div>
+            </td>
+            <td>No accessible logging endpoints found.</td>
+            <td><a class="link" href="../raw/logging_monitoring_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">login_throttling_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:53.440728Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (10)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> &lt;HTML&gt;&lt;HEAD&gt;
+&lt;TITLE&gt;Access Denied&lt;/TITLE&gt;
+&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;Access Denied&lt;/H1&gt;
+ 
+You don&#39;t have permission to access &#34;http&amp;#58;&amp;#47;&amp;#47;example&amp;#46;com&amp;#47;api&amp;#47;login&#34; on this server.&lt;P&gt;
+Reference</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 10</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>No throttling observed — multiple login attempts allowed rapidly.</td>
+            <td><a class="link" href="../raw/login_throttling_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">no_unwanted_keys_exposure_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:56.397062Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (4)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /api/config</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /static/js/app.js</div>
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                        <div><span class="k">Endpoint:</span> /manifest.json</div>
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 4</span>
+              </div>
+            </td>
+            <td>No unwanted keys or secrets exposed.</td>
+            <td><a class="link" href="../raw/no_unwanted_keys_exposure_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">Password Validation</div>
+              
+              
+                <details>
+                  <summary>View Findings (1)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> ❌ No password input fields detected on this page.</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 1</span>
+              </div>
+            </td>
+            <td></td>
+            <td><a class="link" href="../raw/password_validation_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">request_efficiency_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T17:28:46.930738</div>
+              
+              
+                <details>
+                  <summary>View Findings (1)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip LOW">LOW</div>
+                      
+                      
+                        <div><span class="k">Message:</span> No unnecessary or redundant requests detected.</div>
+                      
+                      
+                      
+                      
+                        <div><span class="k">Recommendation:</span> Continue monitoring for request efficiency.</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 1</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>Total requests: 1 | Internal: 1 | Third-party: 0 | Duplicates: 0</td>
+            <td><a class="link" href="../raw/request_efficiency_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">request_timeout_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:34.331757+00:00</div>
+              
+              
+                <details>
+                  <summary>View Findings (3)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip HIGH">HIGH</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status FAIL">FAIL</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 3</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>One or more sub-tests failed.</td>
+            <td><a class="link" href="../raw/request_timeout_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">Response Data</div>
+              
+              
+            </td>
+            <td>
+              <span class="status UNKNOWN">UNKNOWN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td></td>
+            <td><a class="link" href="../raw/response_data_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">role_authorization_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:07:34.097253+00:00</div>
+              
+              
+            </td>
+            <td>
+              <span class="status WARN">WARN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>No unauthorized access detected.</td>
+            <td><a class="link" href="../raw/role_authorization_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">ssl_implementation_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:00.547102Z</div>
+              
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>0 HIGH, 0 MEDIUM, 0 LOW, 0 INFO</td>
+            <td><a class="link" href="../raw/ssl_implementation_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">subdomain_enumeration_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:19.952374Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (2)</summary>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip MEDIUM">MEDIUM</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Subdomain reachable (HTTPS 200)</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                    <div class="finding">
+                      
+                        <div class="chip MEDIUM">MEDIUM</div>
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Subdomain reachable (HTTP 200)</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status WARN">WARN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 2</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>2 medium-risk subdomains detected.</td>
+            <td><a class="link" href="../raw/subdomain_enumeration_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">transport_security</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:07:33.844297Z</div>
+              
+              
+                <details>
+                  <summary>View Findings (1)</summary>
+                  
+                    <div class="finding">
+                      
+                      
+                      
+                        <div><span class="k">Detail:</span> Strict-Transport-Security header (HSTS) is not present</div>
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                    </div>
+                  
+                </details>
+              
+            </td>
+            <td>
+              <span class="status WARN">WARN</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 1</span>
+              </div>
+            </td>
+            <td>Potential transport-related weaknesses found — review findings.</td>
+            <td><a class="link" href="../raw/transport_security_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+          <tr>
+            <td>
+              <div style="font-weight:600">url_data_leak_check</div>
+              
+                <div class="muted">Run at: 2025-10-28T14:08:34.072558Z</div>
+              
+              
+            </td>
+            <td>
+              <span class="status PASS">PASS</span>
+            </td>
+            <td>
+              <div class="sev">
+                <span class="chip HIGH">HIGH: 0</span>
+                <span class="chip MEDIUM">MED: 0</span>
+                <span class="chip LOW">LOW: 0</span>
+                <span class="chip INFO">INFO: 0</span>
+              </div>
+            </td>
+            <td>No sensitive data found in URLs.</td>
+            <td><a class="link" href="../raw/url_data_leak_report.json" target="_blank" rel="noopener">View JSON</a></td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Sidebar: Pie + Legend -->
+    <aside class="card">
+      <div id="pie" style="height:280px;"></div>
+      <div class="legend">
+        <div class="row"><span>PASS</span><span>7</span></div>
+        <div class="row"><span>WARN</span><span>5</span></div>
+        <div class="row"><span>FAIL</span><span>7</span></div>
+        <div class="row"><span>ERROR</span><span>0</span></div>
+        <div class="row"><span>UNKNOWN</span><span>5</span></div>
+      </div>
+    </aside>
   </div>
+
+  <footer>
+    OWASP_Automation • 2025-10-28 14:08:59Z
+  </footer>
+</div>
+
+<!-- Plotly Pie (via CDN) -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+  // Data for pie chart from server
+  const statusCounts = {"ERROR": 0, "FAIL": 7, "PASS": 7, "UNKNOWN": 5, "WARN": 5};
+  const pieData = [{
+    values: [statusCounts.PASS, statusCounts.WARN, statusCounts.FAIL, statusCounts.ERROR, statusCounts.UNKNOWN],
+    labels: ['PASS', 'WARN', 'FAIL', 'ERROR', 'UNKNOWN'],
+    type: 'pie',
+    hole: .55,
+    textinfo: 'label+value',
+    marker: { colors: ['#22c55e','#f59e0b','#ef4444','#a855f7','#9ca3af'] }
+  }];
+  Plotly.newPlot('pie', pieData, {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor : 'rgba(0,0,0,0)',
+    margin:{l:0,r:0,t:0,b:0},
+    showlegend:false
+  }, {displayModeBar:false});
+
+  // Current table data for export (exactly what's rendered)
+  const exported = [{"check_name": "account_lockout_check", "file": "account_lockout_report.json", "findings": [], "raw_relpath": "../raw/account_lockout_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "No account lockout detected \u2014 the user can still login after repeated failed attempts. This could indicate lack of account lockout policy or it may be enforced by different protections (e.g., CAPTCHA, IP block).", "timestamp": "2025-10-28T14:08:20.465906Z"}, {"check_name": "activity_log_check", "file": "activity_log_report.json", "findings": [{"action_url": "http://127.0.0.1:5002/api/user/alice/update-profile", "detail": "\u274c No activity log found for action \u0027update-profile\u0027", "expected_log_url": "http://127.0.0.1:5002/api/logs/alice", "user": "alice"}, {"action_url": "http://127.0.0.1:5002/api/user/alice/logout", "detail": "\u274c No activity log found for action \u0027logout\u0027", "expected_log_url": "http://127.0.0.1:5002/api/logs/alice", "user": "alice"}, {"action_url": "http://127.0.0.1:5002/api/user/bob/update-profile", "detail": "\u274c No activity log found for action \u0027update-profile\u0027", "expected_log_url": "http://127.0.0.1:5002/api/logs/bob", "user": "bob"}, {"action_url": "http://127.0.0.1:5002/api/user/bob/logout", "detail": "\u274c No activity log found for action \u0027logout\u0027", "expected_log_url": "http://127.0.0.1:5002/api/logs/bob", "user": "bob"}], "raw_relpath": "../raw/activity_log_report.json", "sev_counts": {"HIGH": 0, "INFO": 4, "LOW": 0, "MEDIUM": 0}, "status": "WARN", "summary": "Timely logs: 0/4 (0.0%) | Missing: 4, Delayed: 0", "timestamp": "2025-10-28T14:07:42.588403+00:00"}, {"check_name": "admin_temp_email_check", "file": "admin_temp_email_report.json", "findings": [{"detail": "Could not connect to http://127.0.0.1:5002/register_admin for \u0027admin@example.com\u0027. Server may be unreachable.", "evidence": {"email": "admin@example.com", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /register_admin (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x1091142f0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))"}, "issue": "request_error", "severity": "WARN"}, {"detail": "Could not connect to http://127.0.0.1:5002/register_admin for \u0027test@ebpearls.com\u0027. Server may be unreachable.", "evidence": {"email": "test@ebpearls.com", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /register_admin (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10903b890\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))"}, "issue": "request_error", "severity": "WARN"}, {"detail": "Could not connect to http://127.0.0.1:5002/register_admin for \u0027tempadmin@mailinator.com\u0027. Server may be unreachable.", "evidence": {"email": "tempadmin@mailinator.com", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /register_admin (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10903b250\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))"}, "issue": "request_error", "severity": "WARN"}, {"detail": "Could not connect to http://127.0.0.1:5002/register_admin for \u0027fakeadmin@tempmail.com\u0027. Server may be unreachable.", "evidence": {"email": "fakeadmin@tempmail.com", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /register_admin (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10909e520\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))"}, "issue": "request_error", "severity": "WARN"}, {"detail": "Could not connect to http://127.0.0.1:5002/register_admin for \u0027admin@guerrillamail.com\u0027. Server may be unreachable.", "evidence": {"email": "admin@guerrillamail.com", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /register_admin (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10909f230\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))"}, "issue": "request_error", "severity": "WARN"}, {"detail": "Could not connect to http://127.0.0.1:5002/register_admin for \u0027goodadmin@company.org\u0027. Server may be unreachable.", "evidence": {"email": "goodadmin@company.org", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /register_admin (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x1090cd490\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))"}, "issue": "request_error", "severity": "WARN"}], "raw_relpath": "../raw/admin_temp_email_report.json", "sev_counts": {"HIGH": 0, "INFO": 6, "LOW": 0, "MEDIUM": 0}, "status": "UNKNOWN", "summary": "WARN: 6", "timestamp": "2025-10-28T14:08:00.806883Z"}, {"check_name": "api_concurrency_check", "file": "api_concurrency_report.json", "findings": [{"avg_latency": 1.372, "concurrency": 10, "failures": 30, "max_latency": 5.77, "recommendation": "Investigate performance degradation under concurrent requests.", "severity": "HIGH", "status": "FAIL", "test": "Concurrent Request Load", "total_requests": 30}], "raw_relpath": "../raw/api_concurrency_report.json", "sev_counts": {"HIGH": 1, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "30/30 requests failed under concurrency load.", "timestamp": "2025-10-28T14:08:40.326331Z"}, {"check_name": "Bruteforce", "file": "bruteforce_report.json", "findings": [], "raw_relpath": "../raw/bruteforce_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "UNKNOWN", "summary": "", "timestamp": null}, {"check_name": "Cookie Scan", "file": "cookie_scan_report.json", "findings": [], "raw_relpath": "../raw/cookie_scan_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "UNKNOWN", "summary": "", "timestamp": null}, {"check_name": "cors_policy_check", "file": "cors_policy_report.json", "findings": [{"detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.", "evidence": {"acac": "", "acah": "", "acam": "", "acao": "", "actual_status": 200, "preflight_status": 501, "vary": "Accept-Encoding"}, "issue": "no_cors_headers", "method": "GET", "origin": "https://example.com", "severity": "INFO"}, {"detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.", "evidence": {"acac": "", "acah": "", "acam": "", "acao": "", "actual_status": 403, "preflight_status": 501, "vary": ""}, "issue": "no_cors_headers", "method": "POST", "origin": "https://example.com", "severity": "INFO"}, {"detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.", "evidence": {"acac": "", "acah": "", "acam": "", "acao": "", "actual_status": 200, "preflight_status": 501, "vary": "Accept-Encoding"}, "issue": "no_cors_headers", "method": "GET", "origin": "https://evil.example", "severity": "INFO"}, {"detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.", "evidence": {"acac": "", "acah": "", "acam": "", "acao": "", "actual_status": 403, "preflight_status": 501, "vary": ""}, "issue": "no_cors_headers", "method": "POST", "origin": "https://evil.example", "severity": "INFO"}, {"detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.", "evidence": {"acac": "", "acah": "", "acam": "", "acao": "", "actual_status": 200, "preflight_status": 501, "vary": "Accept-Encoding"}, "issue": "no_cors_headers", "method": "GET", "origin": "null", "severity": "INFO"}, {"detail": "No Access-Control-Allow-Origin returned. Cross-origin JS cannot read responses.", "evidence": {"acac": "", "acah": "", "acam": "", "acao": "", "actual_status": 403, "preflight_status": 501, "vary": ""}, "issue": "no_cors_headers", "method": "POST", "origin": "null", "severity": "INFO"}], "raw_relpath": "../raw/cors_policy_report.json", "sev_counts": {"HIGH": 0, "INFO": 6, "LOW": 0, "MEDIUM": 0}, "status": "PASS", "summary": "CORS configuration looks safe for tested scenarios.", "timestamp": "2025-10-28T14:07:54.190233Z"}, {"check_name": "debug_mode_check", "file": "debug_mode_report.json", "findings": [{"endpoint": "https://example.com/", "findings": [{"message": "No debug indicators found.", "recommendation": "Debug mode appears safely disabled.", "severity": "Low"}], "status_code": 200}, {"endpoint": "https://example.com/login", "findings": [{"message": "No debug indicators found.", "recommendation": "Debug mode appears safely disabled.", "severity": "Low"}], "status_code": 404}, {"endpoint": "https://example.com/api", "findings": [{"message": "No debug indicators found.", "recommendation": "Debug mode appears safely disabled.", "severity": "Low"}], "status_code": 404}, {"endpoint": "https://example.com/admin", "findings": [{"message": "No debug indicators found.", "recommendation": "Debug mode appears safely disabled.", "severity": "Low"}], "status_code": 404}, {"endpoint": "https://example.com/status", "findings": [{"message": "No debug indicators found.", "recommendation": "Debug mode appears safely disabled.", "severity": "Low"}], "status_code": 404}], "raw_relpath": "../raw/debug_mode_report.json", "sev_counts": {"HIGH": 0, "INFO": 5, "LOW": 0, "MEDIUM": 0}, "status": "PASS", "summary": "No debug indicators detected across 5 endpoints.", "timestamp": "2025-10-28T19:52:43.056158"}, {"check_name": "email_spoof_check", "file": "email_spoof_report.json", "findings": [{"detail": "MX records: ", "severity": "Info", "title": "MX records present"}, {"detail": "SPF `all` qualifier: -all. This is good (strict deny).", "severity": "Info", "title": "SPF record found (strict)"}, {"detail": "DMARC policy is reject. This helps prevent spoofing.", "severity": "Info", "title": "DMARC policy present"}, {"detail": "Found DKIM public key(s) for selectors: default, selector1, google", "severity": "Info", "title": "DKIM key(s) present"}], "raw_relpath": "../raw/email_spoof_report.json", "sev_counts": {"HIGH": 0, "INFO": 4, "LOW": 0, "MEDIUM": 0}, "status": "PASS", "summary": "Domain has strong anti-spoofing controls (DMARC enforce + SPF/DKIM).", "timestamp": "2025-10-28T14:08:20.202463Z"}, {"check_name": "file_validation_check", "file": "file_validation_report.json", "findings": [{"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10a398440\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Accepted (HTTP 200\u2013299)", "result": "FAIL", "test": "Allowed extension (jpg)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x109de7390\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Accepted (HTTP 200\u2013299)", "result": "FAIL", "test": "Allowed extension (png)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x109de7750\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Accepted (HTTP 200\u2013299)", "result": "FAIL", "test": "Allowed extension (pdf)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x109e575c0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Rejected (HTTP 4xx)", "result": "FAIL", "test": "Disallowed extension (exe)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x109e57bb0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Rejected (HTTP 4xx)", "result": "FAIL", "test": "Disallowed extension (php)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10a3315b0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Rejected (HTTP 4xx)", "result": "FAIL", "test": "Disallowed extension (js)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10a33acf0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Rejected (HTTP 4xx)", "result": "FAIL", "test": "Disallowed extension (sh)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10a33b350\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Rejected (HTTP 4xx)", "result": "FAIL", "test": "Disallowed extension (jsp)"}, {"actual": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /upload (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x10a33b790\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "expected": "Rejected (HTTP 4xx)", "result": "FAIL", "test": "Oversized file (\u003e 5242880 bytes)"}], "raw_relpath": "../raw/file_validation_report.json", "sev_counts": {"HIGH": 0, "INFO": 9, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "All file validation checks failed.", "timestamp": "2025-10-28T14:07:48.102301Z"}, {"check_name": "idor_user_data_check", "file": "idor_user_data_report.json", "findings": [], "raw_relpath": "../raw/idor_user_data_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "WARN", "summary": "No cross-user data access detected.", "timestamp": "2025-10-28T14:07:34.328685+00:00"}, {"check_name": "Jwt Verify", "file": "jwt_verify_report.json", "findings": [], "raw_relpath": "../raw/jwt_verify_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "UNKNOWN", "summary": "", "timestamp": null}, {"check_name": "logging_monitoring_check", "file": "logging_monitoring_report.json", "findings": [{"endpoint": "/api/logs", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /api/logs (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x1069e2fd0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "has_event_keyword": false, "has_timestamp": false, "status_code": null, "structured": false}, {"endpoint": "/admin/logs", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /admin/logs (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x106a3f950\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "has_event_keyword": false, "has_timestamp": false, "status_code": null, "structured": false}, {"endpoint": "/system/logs", "error": "HTTPConnectionPool(host=\u0027127.0.0.1\u0027, port=5002): Max retries exceeded with url: /system/logs (Caused by NewConnectionError(\u0027\u003curllib3.connection.HTTPConnection object at 0x106ac42b0\u003e: Failed to establish a new connection: [Errno 61] Connection refused\u0027))", "has_event_keyword": false, "has_timestamp": false, "status_code": null, "structured": false}], "raw_relpath": "../raw/logging_monitoring_report.json", "sev_counts": {"HIGH": 0, "INFO": 3, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "No accessible logging endpoints found.", "timestamp": "2025-10-28T14:08:59.629383Z"}, {"check_name": "login_throttling_check", "file": "login_throttling_report.json", "findings": [{"attempt": 1, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 1.173, "severity": "HIGH", "status_code": 403}, {"attempt": 2, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 0.913, "severity": "HIGH", "status_code": 403}, {"attempt": 3, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 0.926, "severity": "HIGH", "status_code": 403}, {"attempt": 4, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 0.892, "severity": "HIGH", "status_code": 403}, {"attempt": 5, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 1.159, "severity": "HIGH", "status_code": 403}, {"attempt": 6, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 1.029, "severity": "HIGH", "status_code": 403}, {"attempt": 7, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 1.019, "severity": "HIGH", "status_code": 403}, {"attempt": 8, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 0.921, "severity": "HIGH", "status_code": 403}, {"attempt": 9, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 0.879, "severity": "HIGH", "status_code": 403}, {"attempt": 10, "detail": "\u003cHTML\u003e\u003cHEAD\u003e\n\u003cTITLE\u003eAccess Denied\u003c/TITLE\u003e\n\u003c/HEAD\u003e\u003cBODY\u003e\n\u003cH1\u003eAccess Denied\u003c/H1\u003e\n \nYou don\u0027t have permission to access \"http\u0026#58;\u0026#47;\u0026#47;example\u0026#46;com\u0026#47;api\u0026#47;login\" on this server.\u003cP\u003e\nReference", "latency": 0.857, "severity": "HIGH", "status_code": 403}], "raw_relpath": "../raw/login_throttling_report.json", "sev_counts": {"HIGH": 10, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "No throttling observed \u2014 multiple login attempts allowed rapidly.", "timestamp": "2025-10-28T14:08:53.440728Z"}, {"check_name": "no_unwanted_keys_exposure_check", "file": "no_unwanted_keys_exposure_report.json", "findings": [{"endpoint": "/", "findings": [], "num_findings": 0, "status_code": 200}, {"endpoint": "/api/config", "findings": [], "num_findings": 0, "status_code": 404}, {"endpoint": "/static/js/app.js", "findings": [], "num_findings": 0, "status_code": 404}, {"endpoint": "/manifest.json", "findings": [], "num_findings": 0, "status_code": 404}], "raw_relpath": "../raw/no_unwanted_keys_exposure_report.json", "sev_counts": {"HIGH": 0, "INFO": 4, "LOW": 0, "MEDIUM": 0}, "status": "PASS", "summary": "No unwanted keys or secrets exposed.", "timestamp": "2025-10-28T14:08:56.397062Z"}, {"check_name": "Password Validation", "file": "password_validation_report.json", "findings": [{"detail": "\u274c No password input fields detected on this page."}], "raw_relpath": "../raw/password_validation_report.json", "sev_counts": {"HIGH": 0, "INFO": 1, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "", "timestamp": null}, {"check_name": "request_efficiency_check", "file": "request_efficiency_report.json", "findings": [{"message": "No unnecessary or redundant requests detected.", "recommendation": "Continue monitoring for request efficiency.", "severity": "Low"}], "raw_relpath": "../raw/request_efficiency_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 1, "MEDIUM": 0}, "status": "PASS", "summary": "Total requests: 1 | Internal: 1 | Third-party: 0 | Duplicates: 0", "timestamp": "2025-10-28T17:28:46.930738"}, {"check_name": "request_timeout_check", "file": "request_timeout_report.json", "findings": [{"details": "Failed to connect: [Errno 61] Connection refused", "raw_response_start": null, "result": "ERROR", "severity": "High", "test": "slow_post", "timings": {}}, {"details": "Connect failed: [Errno 61] Connection refused", "result": "ERROR", "severity": "High", "test": "idle_connection", "timings": {}}, {"details": "All concurrent requests failed.", "metrics": {"avg_latency": null, "failures": 3, "requests": 3}, "result": "FAIL", "severity": "High", "test": "concurrency_light"}], "raw_relpath": "../raw/request_timeout_report.json", "sev_counts": {"HIGH": 3, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "FAIL", "summary": "One or more sub-tests failed.", "timestamp": "2025-10-28T14:08:34.331757+00:00"}, {"check_name": "Response Data", "file": "response_data_report.json", "findings": [], "raw_relpath": "../raw/response_data_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "UNKNOWN", "summary": "", "timestamp": null}, {"check_name": "role_authorization_check", "file": "role_authorization_report.json", "findings": [], "raw_relpath": "../raw/role_authorization_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "WARN", "summary": "No unauthorized access detected.", "timestamp": "2025-10-28T14:07:34.097253+00:00"}, {"check_name": "ssl_implementation_check", "file": "ssl_implementation_report.json", "findings": [], "raw_relpath": "../raw/ssl_implementation_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "PASS", "summary": "0 HIGH, 0 MEDIUM, 0 LOW, 0 INFO", "timestamp": "2025-10-28T14:08:00.547102Z"}, {"check_name": "subdomain_enumeration_check", "file": "subdomain_enumeration_report.json", "findings": [{"detail": "Subdomain reachable (HTTPS 200)", "ip": "23.64.59.161", "protocol": "https", "severity": "MEDIUM", "status_code": 200, "subdomain": "www.example.com"}, {"detail": "Subdomain reachable (HTTP 200)", "ip": "23.64.59.161", "protocol": "http", "severity": "MEDIUM", "status_code": 200, "subdomain": "www.example.com"}], "raw_relpath": "../raw/subdomain_enumeration_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 2}, "status": "WARN", "summary": "2 medium-risk subdomains detected.", "timestamp": "2025-10-28T14:08:19.952374Z"}, {"check_name": "transport_security", "file": "transport_security_report.json", "findings": [{"detail": "Strict-Transport-Security header (HSTS) is not present", "type": "missing_hsts"}], "raw_relpath": "../raw/transport_security_report.json", "sev_counts": {"HIGH": 0, "INFO": 1, "LOW": 0, "MEDIUM": 0}, "status": "WARN", "summary": "Potential transport-related weaknesses found \u2014 review findings.", "timestamp": "2025-10-28T14:07:33.844297Z"}, {"check_name": "url_data_leak_check", "file": "url_data_leak_report.json", "findings": [], "raw_relpath": "../raw/url_data_leak_report.json", "sev_counts": {"HIGH": 0, "INFO": 0, "LOW": 0, "MEDIUM": 0}, "status": "PASS", "summary": "No sensitive data found in URLs.", "timestamp": "2025-10-28T14:08:34.072558Z"}];
+
+  // Export CSV
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const rows = [];
+    rows.push(['Check','Status','High','Medium','Low','Info','Summary','Raw']);
+    exported.forEach(r => {
+      rows.push([
+        r.check_name,
+        r.status,
+        r.sev_counts.HIGH || 0,
+        r.sev_counts.MEDIUM || 0,
+        r.sev_counts.LOW || 0,
+        r.sev_counts.INFO || 0,
+        (r.summary || '').replace(/\n+/g,' ').trim(),
+        r.raw_relpath
+      ]);
+      // add each finding as sub-rows for clarity
+      if (Array.isArray(r.findings)) {
+        r.findings.forEach((f, idx) => {
+          const sev = (f.severity || 'INFO').toUpperCase();
+          const msg = f.message || f.issue || f.detail || '';
+          rows.push([`  - Finding ${idx+1}`, sev, '', '', '', '', msg, '']);
+        });
+      }
+    });
+    const csv = rows.map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "owasp_report.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Export JSON (the same shaped data you see)
+  document.getElementById('exportJsonBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(exported, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "owasp_report.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>
 </body>
 </html>
